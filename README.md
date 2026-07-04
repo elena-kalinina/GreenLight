@@ -72,8 +72,9 @@ GreenLight sits at the intersection: **capture the upside, drop only what you ca
 
 ## Architecture
 
-<!-- TODO: architecture diagram -->
 ![GreenLight architecture](frontend/architecture.png)
+
+<sub>Vector source: [`frontend/architecture.svg`](frontend/architecture.svg)</sub>
 
 **Coordination engine** (planner → commercial tools → multi-hop retrieval → claim checker → aggregator) with **human gates** and **SSE event trace** to the UI. **Document layer:** two Vultr Turnkey RAG collections (`greenlight-regulations`, `greenlight-supplier-certs`) seeded from `data/`, with deterministic local keyword fallback so the demo never hard-stops.
 

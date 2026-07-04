@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 620" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#7d8fa9"/>
+    </marker>
+    <linearGradient id="hdr" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#59c2ff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#3dd68c" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1040" height="620" fill="#0a0e14"/>
+  <rect x="0" y="0" width="1040" height="72" fill="url(#hdr)"/>
+  <text x="36" y="38" font-size="22" font-weight="700" fill="#e6edf3">GreenLight  Architecture</text>
+  <text x="36" y="58" font-size="12" fill="#7d8fa9">Line-launch decision agent · commercial upside + document-grounded compliance · Vultr</text>
+
+  <!-- Human -->
+  <rect x="36" y="88" width="168" height="88" rx="10" fill="#141b26" stroke="#59c2ff" stroke-width="1.5"/>
+  <text x="52" y="114" font-size="12" font-weight="600" fill="#e6edf3">Human</text>
+  <text x="52" y="132" font-size="10" fill="#7d8fa9">Responsible sourcing lead</text>
+  <text x="52" y="150" font-size="10" fill="#7d8fa9">Gates: line review · file</text>
+  <text x="52" y="166" font-size="10" fill="#ffc777">PROCEED / CONFIRM / ASK</text>
+
+  <!-- UI -->
+  <rect x="36" y="196" width="168" height="100" rx="10" fill="#141b26" stroke="#3dd68c" stroke-width="1.5"/>
+  <text x="52" y="222" font-size="12" font-weight="600" fill="#e6edf3">Web UI</text>
+  <text x="52" y="240" font-size="10" fill="#7d8fa9">frontend/index.html</text>
+  <text x="52" y="256" font-size="10" fill="#7d8fa9">Claims · score · metrics</text>
+  <text x="52" y="272" font-size="10" fill="#7d8fa9">serve.py · SSE trace</text>
+  <text x="52" y="288" font-size="10" fill="#3dd68c">¶ Run live</text>
+
+  <!-- Coordinator core -->
+  <rect x="232" y="88" width="360" height="208" rx="10" fill="#141b26" stroke="#59c2ff" stroke-width="1.5"/>
+  <text x="248" y="114" font-size="13" font-weight="600" fill="#e6edf3">Coordinator engine</text>
+  <text x="248" y="132" font-size="10" fill="#7d8fa9">greenlight/engine/coordinator.py · EventStream ’ data/events.jsonl</text>
+
+  <rect x="248" y="144" width="156" height="40" rx="7" fill="#1a2332" stroke="#59c2ff" stroke-width="1"/>
+  <text x="260" y="162" font-size="10" font-weight="600" fill="#59c2ff">LaunchPlanner</text>
+  <text x="260" y="176" font-size="9" fill="#7d8fa9">claims × regs + commercial steps</text>
+
+  <rect x="416" y="144" width="160" height="40" rx="7" fill="#1a2332" stroke="#3dd68c" stroke-width="1"/>
+  <text x="428" y="162" font-size="10" font-weight="600" fill="#3dd68c">Commercial tools</text>
+  <text x="428" y="176" font-size="9" fill="#7d8fa9">demand · market · margin · risk</text>
+
+  <rect x="248" y="192" width="156" height="40" rx="7" fill="#1a2332" stroke="#f07178" stroke-width="1"/>
+  <text x="260" y="210" font-size="10" font-weight="600" fill="#f07178">ClaimChecker</text>
+  <text x="260" y="224" font-size="9" fill="#7d8fa9">verdict · citation · multi-hop</text>
+
+  <rect x="416" y="192" width="160" height="40" rx="7" fill="#1a2332" stroke="#ffc777" stroke-width="1"/>
+  <text x="428" y="210" font-size="10" font-weight="600" fill="#ffc777">Determination</text>
+  <text x="428" y="224" font-size="9" fill="#7d8fa9">aggregate · confidence · memo</text>
+
+  <text x="248" y="256" font-size="10" fill="#7d8fa9">Flow: plan ’ commercial ’ per-claim check ’ aggregate ’ gate</text>
+  <text x="248" y="274" font-size="10" fill="#3dd68c">Wow: retrieval #1 (reg) ’ needs-evidence ’ retrieval #2 (TC) ’ BLOCK</text>
+  <text x="248" y="292" font-size="10" fill="#7d8fa9">verify_recycled_content(): claimed 70% vs TC 40%</text>
+
+  <!-- Agents/tools detail -->
+  <rect x="616" y="88" width="388" height="208" rx="10" fill="#141b26" stroke="#3dd68c" stroke-width="1.5"/>
+  <text x="632" y="114" font-size="13" font-weight="600" fill="#e6edf3">Tool layer</text>
+  <text x="632" y="132" font-size="10" fill="#7d8fa9">greenlight/tools/ · deterministic · trace-visible</text>
+
+  <rect x="632" y="144" width="168" height="34" rx="6" fill="#1a2332" stroke="#3dd68c" stroke-width="1"/>
+  <text x="644" y="165" font-size="10" fill="#e6edf3">forecast_demand()</text>
+  <rect x="812" y="144" width="176" height="34" rx="6" fill="#1a2332" stroke="#3dd68c" stroke-width="1"/>
+  <text x="824" y="165" font-size="10" fill="#e6edf3">market_context() · project_margin()</text>
+
+  <rect x="632" y="186" width="168" height="34" rx="6" fill="#1a2332" stroke="#59c2ff" stroke-width="1"/>
+  <text x="644" y="207" font-size="10" fill="#e6edf3">search_regulations()</text>
+  <rect x="812" y="186" width="176" height="34" rx="6" fill="#1a2332" stroke="#59c2ff" stroke-width="1"/>
+  <text x="824" y="207" font-size="10" fill="#e6edf3">lookup_supplier_cert()</text>
+
+  <rect x="632" y="228" width="168" height="34" rx="6" fill="#1a2332" stroke="#f07178" stroke-width="1"/>
+  <text x="644" y="249" font-size="10" fill="#e6edf3">verify_recycled_content()</text>
+  <rect x="812" y="228" width="176" height="34" rx="6" fill="#1a2332" stroke="#ffc777" stroke-width="1"/>
+  <text x="824" y="249" font-size="10" fill="#e6edf3">compute_risk_exposure()</text>
+
+  <text x="632" y="282" font-size="10" fill="#7d8fa9">Output: GREEN-LIGHT WITH CONDITIONS · 4/6 substantiated · confidence 0.67</text>
+
+  <!-- Commercial data -->
+  <rect x="36" y="320" width="480" height="132" rx="10" fill="#141b26" stroke="#3dd68c" stroke-width="1.5"/>
+  <text x="52" y="346" font-size="12" font-weight="600" fill="#3dd68c">Commercial data (real & cited)</text>
+  <rect x="52" y="358" width="140" height="48" rx="7" fill="#1a2332" stroke="#3dd68c" stroke-width="1"/>
+  <text x="64" y="378" font-size="10" fill="#e6edf3">Google Trends</text>
+  <text x="64" y="394" font-size="9" fill="#7d8fa9">261 weeks · 3 keywords</text>
+  <rect x="204" y="358" width="140" height="48" rx="7" fill="#1a2332" stroke="#3dd68c" stroke-width="1"/>
+  <text x="216" y="378" font-size="10" fill="#e6edf3">DataCo margins</text>
+  <text x="216" y="394" font-size="9" fill="#7d8fa9">apparel profit ratios</text>
+  <rect x="356" y="358" width="140" height="48" rx="7" fill="#1a2332" stroke="#3dd68c" stroke-width="1"/>
+  <text x="368" y="378" font-size="10" fill="#e6edf3">Market / WTP</text>
+  <text x="368" y="394" font-size="9" fill="#7d8fa9">$11B · 915% premium</text>
+  <text x="52" y="430" font-size="10" fill="#7d8fa9">data/demand/ · data/margins/ · data/market/ · data/line/aw26_line.json</text>
+
+  <!-- Compliance docs -->
+  <rect x="536" y="320" width="468" height="132" rx="10" fill="#141b26" stroke="#59c2ff" stroke-width="1.5"/>
+  <text x="552" y="346" font-size="12" font-weight="600" fill="#59c2ff">Compliance documents</text>
+  <rect x="552" y="358" width="200" height="48" rx="7" fill="#1a2332" stroke="#59c2ff" stroke-width="1"/>
+  <text x="564" y="378" font-size="10" fill="#e6edf3">ECGT 2024/825 (EUR-Lex)</text>
+  <text x="564" y="394" font-size="9" fill="#7d8fa9">Annex I 4a · 4b · substantiation</text>
+  <rect x="764" y="358" width="224" height="48" rx="7" fill="#1a2332" stroke="#ffc777" stroke-width="1"/>
+  <text x="776" y="378" font-size="10" fill="#e6edf3">Supplier SC + TC (synthetic)</text>
+  <text x="776" y="394" font-size="9" fill="#7d8fa9">Textile Exchange ASR-204/205 · TC 0417 = 40%</text>
+  <text x="552" y="430" font-size="10" fill="#7d8fa9">data/regulations/ · data/certs/ · seeded into Vultr Turnkey RAG</text>
+
+  <!-- Vultr platform -->
+  <rect x="36" y="472" width="968" height="128" rx="10" fill="#141b26" stroke="#59c2ff" stroke-width="1.5"/>
+  <text x="52" y="498" font-size="12" font-weight="600" fill="#59c2ff">Vultr platform</text>
+
+  <rect x="52" y="510" width="220" height="56" rx="7" fill="#1a2332" stroke="#59c2ff" stroke-width="1"/>
+  <text x="64" y="530" font-size="10" font-weight="600" fill="#e6edf3">Serverless Inference</text>
+  <text x="64" y="546" font-size="9" fill="#7d8fa9">Kimi-K2.6 · DeepSeek-V4-Flash · Qwen3.6-27B</text>
+  <text x="64" y="560" font-size="9" fill="#7d8fa9">api.vultrinference.com · INFERENCE_API_KEY</text>
+
+  <rect x="288" y="510" width="240" height="56" rx="7" fill="#1a2332" stroke="#ffc777" stroke-width="1"/>
+  <text x="300" y="530" font-size="10" font-weight="600" fill="#e6edf3">Turnkey RAG (2 collections)</text>
+  <text x="300" y="546" font-size="9" fill="#7d8fa9">greenlight-regulations · greenlight-supplier-certs</text>
+  <text x="300" y="560" font-size="9" fill="#7d8fa9">Retrieval #1 + #2 · scripts/seed_rag.py</text>
+
+  <rect x="544" y="510" width="200" height="56" rx="7" fill="#1a2332" stroke="#3dd68c" stroke-width="1"/>
+  <text x="556" y="530" font-size="10" font-weight="600" fill="#e6edf3">Local fallback</text>
+  <text x="556" y="546" font-size="9" fill="#7d8fa9">local_rag.py · same corpus</text>
+  <text x="556" y="560" font-size="9" fill="#3dd68c">demo never hard-stops</text>
+
+  <rect x="760" y="510" width="228" height="56" rx="7" fill="#1a2332" stroke="#59c2ff" stroke-width="1"/>
+  <text x="772" y="530" font-size="10" font-weight="600" fill="#e6edf3">Vultr Compute</text>
+  <text x="772" y="546" font-size="9" fill="#7d8fa9">serve.py · hosted demo URL</text>
+  <text x="772" y="560" font-size="9" fill="#7d8fa9">GREENLIGHT_LIVE_RAG=0 default (fast)</text>
+
+  <!-- Arrows -->
+  <path d="M204 132 L232 132" stroke="#7d8fa9" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
+  <path d="M120 196 L120 176 L232 176" stroke="#7d8fa9" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
+  <path d="M592 192 L616 192" stroke="#7d8fa9" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
+  <path d="M412 296 L412 320" stroke="#3dd68c" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
+  <path d="M770 296 L770 320" stroke="#59c2ff" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
+  <path d="M276 296 L276 472" stroke="#7d8fa9" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
+  <path d="M770 452 L770 472" stroke="#7d8fa9" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
+</svg>
