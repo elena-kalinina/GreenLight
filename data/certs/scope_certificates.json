@@ -1,0 +1,36 @@
+{
+  "_provenance": "Synthetic Scope Certificates, structurally modeled on Textile Exchange template ASR-204 and the Policy for Scope & Transaction Certificates (TE-TXL-POL-203 v4.0), including the real verification-URL format certificates.textileexchange.org/sc/TE-XXXXXXXX. Data is fictional and labelled on camera.",
+  "_definition": "A Scope Certificate (SC) verifies a company is QUALIFIED (audited) to produce goods to a given standard. It does NOT prove any specific shipment's content.",
+  "scope_certificates": [
+    {
+      "certNo": "SC-GRS-2026-10237845",
+      "standard": "Global Recycled Standard (GRS 4.0)",
+      "certifiedOrganizationTeId": "TE-10237845",
+      "certifiedOrganization": "Atlas Textile Mills Ltd",
+      "certificationBody": "Control Union Certifications",
+      "validFrom": "2026-01-15",
+      "validUntil": "2027-01-14",
+      "status": "VALID",
+      "scopeProducts": [
+        {"material": "recycled polyester", "productCategory": "knit and woven fabric for outerwear", "processCategory": "weaving, knitting, finishing"}
+      ],
+      "verificationUrl": "https://certificates.textileexchange.org/sc/TE-10237845",
+      "note": "Confirms Atlas is AUDITED and CAPABLE of producing GRS recycled polyester. Says nothing about the recycled content of any particular shipment."
+    },
+    {
+      "certNo": "SC-GOTS-2026-55810293",
+      "standard": "Global Organic Textile Standard (GOTS 7.0)",
+      "certifiedOrganizationTeId": "TE-55810293",
+      "certifiedOrganization": "Verde Organics S.A.",
+      "certificationBody": "CERES GmbH",
+      "validFrom": "2026-02-01",
+      "validUntil": "2027-01-31",
+      "status": "VALID",
+      "scopeProducts": [
+        {"material": "organic cotton", "productCategory": "woven dresses, knit loungewear, trousers", "processCategory": "spinning, weaving, cutting, sewing"}
+      ],
+      "verificationUrl": "https://certificates.textileexchange.org/sc/TE-55810293",
+      "note": "Confirms Verde is certified organic cotton across the relevant product categories."
+    }
+  ]
+}

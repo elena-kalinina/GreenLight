@@ -1,0 +1,33 @@
+{
+  "_comment": "Voiceover script for the 60s demo. Numbers are spelled out for natural TTS. Regenerate audio with: python3 scripts/gradium_tts.py",
+  "voice_id": "KWJiFWu2O9nMPYcR",
+  "voice_name": "John (US, warm broadcaster) — locked",
+  "output_format": "wav",
+  "beats": [
+    {
+      "id": "01_hook",
+      "time": "0:00-0:08",
+      "text": "Sustainability sells, so brands over-claim. In twelve weeks, the E U starts fining that at up to four percent of turnover. Shein already paid forty-one million."
+    },
+    {
+      "id": "02_setup",
+      "time": "0:08-0:16",
+      "text": "GreenLight forecasts the demand upside of going sustainable, then checks every claim the brand wants to make, and green-lights only the ones it can prove."
+    },
+    {
+      "id": "03_wow",
+      "time": "0:16-0:42",
+      "text": "It plans the checks and cites the regulation for each claim. This seventy percent recycled claim isn't backed, so it doesn't guess. It goes back, pulls the supplier's transaction certificate, finds it only covers forty, and blocks the claim, citing the exact article."
+    },
+    {
+      "id": "04_impact",
+      "time": "0:42-0:53",
+      "text": "It green-lights the line, capturing the upside, dropping only what it can't prove. Every decision traced to a document in Vultr's private R A G. A determination the sourcing team files, in seconds."
+    },
+    {
+      "id": "05_close",
+      "time": "0:53-1:00",
+      "text": "GreenLight. Claim boldly, but only what you can prove."
+    }
+  ]
+}

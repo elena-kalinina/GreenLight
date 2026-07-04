@@ -15,10 +15,21 @@ env/
 data/events.jsonl
 *.log
 
+# Large raw datasets (regenerable; keep only curated/derived files in git)
+data/margins/DataCoSupplyChainDataset.csv
+data/demand/visuelle/
+data/raw/
+# (committed: data/demand/trends_sustainability.csv, data/margins/datac_apparel_benchmarks.csv)
+
 # Recordings / large media (keep committed assets in frontend/)
 recordings/
 *.mov
 *.mp4
+# Generated voiceover audio (regenerate from demo/narration.json via scripts/gradium_tts.py)
+demo/voiceover/
+*.wav
+*.mp3
+*.ogg
 
 # OS / editor
 .DS_Store

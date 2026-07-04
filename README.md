@@ -72,13 +72,14 @@ A domain-agnostic **coordination core** (planner → retriever → claim-checker
 ## Quick start (offline — deterministic, no keys)
 
 ```bash
-cd GreenLight
-python3 scripts/serve.py            # http://localhost:8000/frontend/index.html
-# then click ▶ Gate line — the agent runs step by step into the UI
+python3 serve.py                    # http://localhost:8000/frontend/index.html → ▶ Run live
+python3 scripts/demo_test.py        # quick assertions (4/6 cleared, 2 blocked)
+python3 greenlight/run.py           # CLI trace only (~instant)
+python3 scripts/seed_rag.py         # (once) seed Vultr RAG collections
 ```
 
 - Runs fully offline with deterministic fallbacks + local keyword retrieval (no keys needed) so the demo never hard-stops.
-- With `INFERENCE_API_KEY` set, the agent runs live on **Vultr Serverless Inference** — `kimi-k2-instruct` for reasoning/tool-calling, `deepseek-r1-distill-llama-70b` for grounded document reasoning, `llama-3.3-70b` for structured output — with grounding on **Vultr Turnkey RAG** (two private collections). See [`docs/VULTR.md`](docs/VULTR.md).
+- With `INFERENCE_API_KEY` set, the agent runs live on **Vultr Serverless Inference** — `moonshotai/Kimi-K2.6` for reasoning/tool-calling, `deepseek-ai/DeepSeek-V4-Flash` for grounded document reasoning, `Qwen/Qwen3.6-27B` for structured output — with grounding on **Vultr Turnkey RAG** (two private collections). See [`docs/VULTR.md`](docs/VULTR.md).
 
 Deployed demo (Vultr Compute): <!-- TODO URL -->
 

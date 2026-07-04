@@ -16,13 +16,14 @@ We use the right model for each job rather than one model for everything:
 
 | Job | Model | Why |
 |---|---|---|
-| **Agent brain** — planning, decisions, tool-calling | **`kimi-k2-instruct`** | Strong agentic reasoning; the tool-calling–capable model on Vultr Serverless Inference |
-| **Grounded document reasoning** (RAG) — "is this claim substantiated by the retrieved clause?" | **`deepseek-r1-distill-llama-70b`** | Reasoning-tuned and RAG-compatible via the Turnkey RAG endpoint |
-| **Structured output / summarization** (determination JSON, DPP fields, remediation copy) | **`llama-3.3-70b-instruct-fp8`** | Fast, stable instruction-following for structured/auxiliary output |
+| **Agent brain** — planning, decisions, tool-calling | **`moonshotai/Kimi-K2.6`** | Strong agentic reasoning; native tool-calling verified on Vultr Serverless Inference |
+| **Grounded document reasoning** (RAG) — "is this claim substantiated by the retrieved clause?" | **`deepseek-ai/DeepSeek-V4-Flash`** | Reasoning-tuned and verified against the Turnkey RAG endpoint |
+| **Structured output / summarization** (determination JSON, DPP fields, remediation copy) | **`Qwen/Qwen3.6-27B`** | Fast, stable instruction-following for structured/auxiliary output |
 
-> Note: native tool-calling is available on `kimi-k2-instruct`; the managed RAG endpoint is
-> used with a RAG-compatible model (`deepseek-r1-distill-llama-70b`). Roles are cleanly split
-> so each call uses a model suited to it.
+> Model IDs are the exact catalog names returned by `GET /v1/models` and verified end-to-end
+> (chat, tool-calling, and grounded RAG) on 2026-07-04. Roles are cleanly split so each call
+> uses a model suited to it. Embeddings for the vector store are handled by Vultr's own
+> `vultr/VultronRetriever*` models automatically.
 
 ## Endpoints
 
@@ -30,12 +31,12 @@ We use the right model for each job rather than one model for everything:
 # Chat / reasoning (OpenAI-compatible)
 curl "https://api.vultrinference.com/v1/chat/completions" -X POST \
   -H "Authorization: Bearer ${INFERENCE_API_KEY}" -H "Content-Type: application/json" \
-  --data '{"model":"kimi-k2-instruct","messages":[{"role":"user","content":"..."}]}'
+  --data '{"model":"moonshotai/Kimi-K2.6","messages":[{"role":"user","content":"..."}]}'
 
 # RAG (grounded on a private collection)
 curl "https://api.vultrinference.com/v1/chat/completions/RAG" -X POST \
   -H "Authorization: Bearer ${INFERENCE_API_KEY}" -H "Content-Type: application/json" \
-  --data '{"collection":"greenlight-regulations","model":"deepseek-r1-distill-llama-70b",
+  --data '{"collection":"greenlight-regulations","model":"deepseek-ai/DeepSeek-V4-Flash",
            "messages":[{"role":"user","content":"..."}]}'
 ```
 

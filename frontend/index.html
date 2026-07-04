@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GreenLight — line launch agent</title>
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --panel: #141b26;
+      --text: #e6edf3;
+      --muted: #7d8fa9;
+      --green: #3dd68c;
+      --red: #f07178;
+      --amber: #ffc777;
+      --accent: #59c2ff;
+      --border: #243044;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    header {
+      padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { margin: 0; font-size: 1.2rem; }
+    header p { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.8rem; }
+    button {
+      background: var(--accent); color: #031018; border: none; padding: 0.55rem 1rem;
+      border-radius: 8px; font-weight: 700; cursor: pointer;
+    }
+    button:disabled { opacity: 0.45; cursor: wait; }
+    .metrics {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem;
+      padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border); background: #0d1219;
+    }
+    .metric { text-align: center; }
+    .metric .val { font-size: 1.1rem; font-weight: 700; }
+    .metric .lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    main {
+      display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 1rem;
+      padding: 1rem 1.5rem 2rem; max-width: 1280px; margin: 0 auto;
+    }
+    @media (max-width: 960px) { main { grid-template-columns: 1fr; } .metrics { grid-template-columns: repeat(3,1fr); } }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
+    .panel h2 { margin: 0 0 0.6rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .score-wrap { margin-bottom: 0.75rem; }
+    .score-bar { height: 8px; background: #1e2836; border-radius: 4px; overflow: hidden; }
+    .score-fill { height: 100%; background: var(--green); width: 100%; transition: width 0.4s ease, background 0.3s; }
+    .score-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+    #commercial { font-size: 0.85rem; line-height: 1.55; margin-bottom: 0.75rem; padding: 0.6rem; background: #101722; border-radius: 8px; }
+    #claims { display: flex; flex-direction: column; gap: 0.45rem; }
+    .claim {
+      padding: 0.6rem 0.7rem; border-radius: 8px; border: 1px solid var(--border);
+      font-size: 0.82rem; transition: border-color 0.25s, background 0.25s;
+    }
+    .claim .id { color: var(--muted); font-size: 0.72rem; }
+    .claim .status { font-weight: 600; margin-top: 0.2rem; }
+    .claim .cite { font-size: 0.72rem; color: var(--amber); margin-top: 0.35rem; display: none; line-height: 1.35; }
+    .claim.show-cite .cite { display: block; }
+    .claim.pending { opacity: 0.55; }
+    .claim.checking, .claim.needs-evidence { border-color: var(--amber); }
+    .claim.substantiated { border-color: var(--green); background: rgba(61,214,140,0.07); }
+    .claim.blocked { border-color: var(--red); background: rgba(240,113,120,0.09); }
+    .claim.blocked .status { color: var(--red); }
+    .claim.substantiated .status { color: var(--green); }
+    #determination {
+      margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
+      background: rgba(89,194,255,0.07); border: 1px solid var(--accent); display: none;
+    }
+    #determination.visible { display: block; }
+    #determination strong { color: var(--accent); font-size: 0.95rem; }
+    #trace {
+      font-family: ui-monospace, monospace; font-size: 0.74rem;
+      max-height: 520px; overflow-y: auto; line-height: 1.4;
+    }
+    #trace div { padding: 0.12rem 0; color: var(--muted); }
+    #trace .retrieval { color: var(--amber); }
+    #trace .blocked { color: var(--red); }
+    #trace .actor { color: var(--accent); }
+    .caption { font-size: 0.65rem; color: var(--muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>GreenLight</h1>
+      <p>Élan Studio · AW26 · enterprise line-launch agent</p>
+    </div>
+    <button id="runBtn" type="button">▶ Run live</button>
+  </header>
+  <div class="metrics">
+    <div class="metric"><div class="val" id="mCleared">—</div><div class="lbl">Cleared</div></div>
+    <div class="metric"><div class="val" id="mBlocked">—</div><div class="lbl">Blocked</div></div>
+    <div class="metric"><div class="val" id="mCited">—</div><div class="lbl">Cited</div></div>
+    <div class="metric"><div class="val" id="mExposure">—</div><div class="lbl">Exposure avoided</div></div>
+    <div class="metric"><div class="val" id="mConf">—</div><div class="lbl">Confidence</div></div>
+  </div>
+  <main>
+    <section class="panel">
+      <h2>Line review</h2>
+      <div class="score-wrap">
+        <div class="score-bar"><div class="score-fill" id="scoreFill"></div></div>
+        <div class="score-label" id="scoreLabel">Compliance score · waiting</div>
+      </div>
+      <div id="commercial">Waiting for run…</div>
+      <div id="claims"></div>
+      <div id="determination"></div>
+      <p class="caption">Real & cited: EU regulations, Google Trends, DataCo margins, market stats. Synthetic (labelled): line claims + supplier certs.</p>
+    </section>
+    <section class="panel">
+      <h2>Agent trace</h2>
+      <div id="trace"></div>
+    </section>
+  </main>
+  <script>
+    const CLAIMS = [
+      { id: "C1", text: "70% recycled polyester", sku: "GL-01" },
+      { id: "C2", text: "eco-friendly", sku: "GL-02" },
+      { id: "C3", text: "GOTS-certified organic cotton", sku: "GL-03" },
+      { id: "C4", text: "OEKO-TEX Standard 100", sku: "GL-04" },
+      { id: "C5", text: "water-repellent 8,000mm", sku: "GL-05" },
+      { id: "C6", text: "reinforced durability seams", sku: "GL-06" },
+    ];
+    let cleared = 0, blocked = 0;
+    const claimsEl = document.getElementById("claims");
+    const traceEl = document.getElementById("trace");
+    const commercialEl = document.getElementById("commercial");
+    const detEl = document.getElementById("determination");
+    const runBtn = document.getElementById("runBtn");
+    const scoreFill = document.getElementById("scoreFill");
+    const scoreLabel = document.getElementById("scoreLabel");
+
+    function initClaims() {
+      cleared = 0; blocked = 0;
+      claimsEl.innerHTML = CLAIMS.map(c =>
+        `<div class="claim pending" data-id="${c.id}">
+          <span class="id">${c.id} · ${c.sku}</span><br>${c.text}
+          <div class="status">pending</div>
+          <div class="cite"></div>
+        </div>`
+      ).join("");
+      scoreFill.style.width = "100%";
+      scoreFill.style.background = "var(--green)";
+      scoreLabel.textContent = "Compliance score · 6/6 pending";
+      ["mCleared","mBlocked","mCited","mExposure","mConf"].forEach(id => document.getElementById(id).textContent = "—");
+    }
+    initClaims();
+
+    function updateScore() {
+      const total = CLAIMS.length;
+      const pct = Math.round((cleared / total) * 100);
+      scoreFill.style.width = pct + "%";
+      scoreFill.style.background = blocked ? "var(--amber)" : "var(--green)";
+      scoreLabel.textContent = `Compliance score · ${cleared}/${total} substantiated · ${blocked} blocked`;
+      document.getElementById("mCleared").textContent = cleared;
+      document.getElementById("mBlocked").textContent = blocked;
+    }
+
+    function setClaim(id, status, extra = "", citation = "") {
+      const el = claimsEl.querySelector(`[data-id="${id}"]`);
+      if (!el) return;
+      const prev = el.className.match(/substantiated|blocked/)?.[0];
+      el.className = `claim ${status.replace(/_/g, "-")}` + (citation ? " show-cite" : "");
+      el.querySelector(".status").textContent = status.replace(/_/g, " ") + (extra ? ` — ${extra}` : "");
+      if (citation) el.querySelector(".cite").textContent = citation;
+      if (status === "substantiated" && prev !== "substantiated") cleared++;
+      if (status === "blocked" && prev !== "blocked") blocked++;
+      if (status === "substantiated" || status === "blocked") updateScore();
+    }
+
+    function appendTrace(ev) {
+      const line = document.createElement("div");
+      let cls = "";
+      if (ev.kind === "retrieval") cls = "retrieval";
+      if (ev.status === "blocked") cls = "blocked";
+      line.className = cls;
+      const hop = ev.retrieval ? ` [#${ev.retrieval}]` : "";
+      line.innerHTML = `<span class="actor">${ev.actor}</span> · ${ev.kind}${hop} · ${ev.text || ev.claim_id || ""}`;
+      traceEl.appendChild(line);
+      traceEl.scrollTop = traceEl.scrollHeight;
+    }
+
+    runBtn.onclick = () => {
+      runBtn.disabled = true;
+      traceEl.innerHTML = "";
+      commercialEl.textContent = "Running agent…";
+      detEl.className = "";
+      detEl.innerHTML = "";
+      initClaims();
+      const es = new EventSource("/api/run?delay=0.4");
+      es.onmessage = (msg) => {
+        const ev = JSON.parse(msg.data);
+        appendTrace(ev);
+        if (ev.kind === "tool" && ev.actor === "forecast_demand") {
+          commercialEl.innerHTML = `<strong>Demand index ${ev.demand_index}</strong> (${ev.trend}) · real Google Trends<br>`;
+        }
+        if (ev.kind === "tool" && ev.actor === "market_context") {
+          commercialEl.innerHTML += ev.text + "<br>";
+        }
+        if (ev.kind === "tool" && ev.actor === "project_margin") {
+          commercialEl.innerHTML += `Line contribution <strong>€${(ev.projected_contribution_eur||0).toLocaleString()}</strong><br>`;
+        }
+        if (ev.kind === "claim" && ev.claim_id) {
+          const st = ev.status || "checking";
+          setClaim(ev.claim_id, st, ev.remediation?.slice(0, 50) || "", ev.citation || "");
+        }
+        if (ev.kind === "synthesis") {
+          detEl.className = "visible";
+          detEl.innerHTML = `<strong>${ev.recommendation}</strong><p>${ev.summary}</p>
+            <p style="font-size:0.8rem;color:var(--muted)">Confidence ${ev.confidence} · Net upside €${(ev.net_upside_eur||0).toLocaleString()}</p>`;
+          document.getElementById("mCited").textContent = "100%";
+          document.getElementById("mExposure").textContent = "€" + (ev.max_exposure_eur/1e6).toFixed(0) + "M";
+          document.getElementById("mConf").textContent = ev.confidence;
+        }
+        if (ev.kind === "metric") {
+          document.getElementById("mCited").textContent = ev.cited_pct + "%";
+          if (ev.net_upside_eur) commercialEl.innerHTML += `<br>Net upside €${ev.net_upside_eur.toLocaleString()} (demand-adjusted)`;
+        }
+      };
+      es.addEventListener("done", () => { es.close(); runBtn.disabled = false; });
+      es.onerror = () => { es.close(); runBtn.disabled = false; };
+    };
+  </script>
+</body>
+</html>

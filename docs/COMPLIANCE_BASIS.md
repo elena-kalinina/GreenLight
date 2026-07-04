@@ -40,8 +40,11 @@ include revenue confiscation and exclusion from public procurement.
 
 ## 3. Enforcement is already happening
 
-- **Shein:** €40M (France, DGCCRF, Jul 2025) and €1M (Italy, AGCM, Aug 2025) for misleading
-  environmental claims.
+- **Shein / ISEL:** **€40M** (France, DGCCRF, 3 Jul 2025) for deceptive commercial practices —
+  including environmental claims it could not substantiate ("responsible company", "−25%
+  greenhouse-gas emissions") — plus a separate **€1.098M** (France) for non-compliance with
+  environmental-information obligations. The European Commission also found Shein in breach of
+  EU consumer law (May 2025).
 - **H&M / Decathlon:** forced by the Dutch ACM to drop "Conscious" / "Ecodesign" labels;
   donations of €500k / €400k.
 - **ASOS / Boohoo / George at Asda:** binding commitments to the UK CMA.
@@ -60,6 +63,12 @@ Textile recycled claims are backed by **Textile Exchange** standards:
 > A valid Scope Certificate does **not** substantiate a specific product claim without a
 > matching Transaction Certificate. GreenLight checks for the TC and the covered percentage.
 
+**Why the numbers matter (market baseline):** per the *Textile Exchange Materials Market Report
+2025*, recycled polyester was ~**12%** of all polyester in 2024, and **~98%** of it comes from
+**plastic bottles** — **textile-to-textile** recycled fibre is **<1%** of the whole fibre market.
+So a high recycled-content claim, especially one implying textile waste, is extraordinary and
+should be backed by a shipment-level Transaction Certificate — exactly the gap GreenLight catches.
+
 ## 5. Coming next (not yet mandatory)
 
 - **ESPR (Reg. (EU) 2024/1781) → Digital Product Passport** — textiles are a priority
@@ -75,5 +84,5 @@ Textile recycled claims are backed by **Textile Exchange** standards:
 
 ## Sources
 EUR-Lex (Dir. 2024/825; Dir. 2019/2161; Reg. 2024/1781); European Commission ECGT FAQ;
-Textile Exchange (GRS/RCS, SC/TC); national authorities ACM, AGCM, DGCCRF, CMA; ESPR Working
-Plan 2025–2030.
+Textile Exchange (GRS/RCS, SC/TC templates ASR-204/205; Materials Market Report 2025); national
+authorities ACM, AGCM, DGCCRF, CMA; ESPR Working Plan 2025–2030.

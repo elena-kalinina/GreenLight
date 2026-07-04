@@ -1,0 +1,93 @@
+{
+  "_provenance": "Product attributes (categories, fibre compositions, price bands) are modeled on the real Livostyle open catalog (HF arturayupov/womens-fashion-catalog, MIT). Brand and specific marketing CLAIMS are synthetic (scenario), clearly labelled on camera. Suppliers/certs are synthetic but structurally authentic (Textile Exchange ASR-204/205).",
+  "brand": "\u00c9lan Studio",
+  "season": "AW26",
+  "currency": "EUR",
+  "annual_turnover_eur": 2000000000,
+  "skus": [
+    {
+      "sku": "GL-01",
+      "name": "Aurora Puffer Jacket",
+      "category": "Outerwear",
+      "composition": "70% recycled polyester, 30% polyester (shell)",
+      "supplier_id": "SUP-ATLAS",
+      "unit_cost_eur": 31.5,
+      "wholesale_price_eur": 58.0,
+      "retail_price_eur": 149.0,
+      "planned_units": 12000,
+      "marketing_claims": [
+        {"id": "C1", "text": "70% recycled polyester", "type": "recycled_content", "claimed_recycled_pct": 70, "attribute": "recycled_polyester"}
+      ]
+    },
+    {
+      "sku": "GL-02",
+      "name": "Terra Knit Sweater",
+      "category": "Sweater",
+      "composition": "100% polyester",
+      "supplier_id": "SUP-NOVA",
+      "unit_cost_eur": 12.0,
+      "wholesale_price_eur": 24.0,
+      "retail_price_eur": 59.0,
+      "planned_units": 18000,
+      "marketing_claims": [
+        {"id": "C2", "text": "eco-friendly", "type": "generic_environmental", "attribute": null}
+      ]
+    },
+    {
+      "sku": "GL-03",
+      "name": "Meadow Wrap Dress",
+      "category": "Dress",
+      "composition": "100% organic cotton",
+      "supplier_id": "SUP-VERDE",
+      "unit_cost_eur": 18.0,
+      "wholesale_price_eur": 34.0,
+      "retail_price_eur": 89.0,
+      "planned_units": 9000,
+      "marketing_claims": [
+        {"id": "C3", "text": "GOTS-certified organic cotton", "type": "certified_material", "attribute": "organic_cotton", "scheme": "GOTS"}
+      ]
+    },
+    {
+      "sku": "GL-04",
+      "name": "Cloud Lounge Set",
+      "category": "Lounge Set",
+      "composition": "95% cotton, 5% elastane",
+      "supplier_id": "SUP-VERDE",
+      "unit_cost_eur": 15.5,
+      "wholesale_price_eur": 29.0,
+      "retail_price_eur": 75.0,
+      "planned_units": 14000,
+      "marketing_claims": [
+        {"id": "C4", "text": "OEKO-TEX Standard 100 certified", "type": "certified_material", "attribute": "chemical_safety", "scheme": "OEKO-TEX Standard 100"}
+      ]
+    },
+    {
+      "sku": "GL-05",
+      "name": "Harbor Trench Coat",
+      "category": "Outerwear",
+      "composition": "60% cotton, 40% polyester",
+      "supplier_id": "SUP-NOVA",
+      "unit_cost_eur": 27.0,
+      "wholesale_price_eur": 52.0,
+      "retail_price_eur": 135.0,
+      "planned_units": 7000,
+      "marketing_claims": [
+        {"id": "C5", "text": "water-repellent finish, tested to 8,000mm hydrostatic head", "type": "specific_verifiable", "attribute": "performance"}
+      ]
+    },
+    {
+      "sku": "GL-06",
+      "name": "Sable Tailored Trousers",
+      "category": "Pants",
+      "composition": "78% cotton, 20% nylon, 2% spandex",
+      "supplier_id": "SUP-VERDE",
+      "unit_cost_eur": 16.0,
+      "wholesale_price_eur": 31.0,
+      "retail_price_eur": 79.0,
+      "planned_units": 10000,
+      "marketing_claims": [
+        {"id": "C6", "text": "reinforced seams for extended durability", "type": "specific_verifiable", "attribute": "durability"}
+      ]
+    }
+  ]
+}

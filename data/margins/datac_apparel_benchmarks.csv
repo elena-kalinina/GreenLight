@@ -1,0 +1,11 @@
+category,n_orders,avg_profit_ratio,avg_discount_rate,avg_unit_price_usd
+Cleats,24551,0.1246,0.1016,60.34
+Men's Footwear,22246,0.1201,0.1017,129.99
+Women's Apparel,21035,0.1222,0.1017,50.0
+Accessories,1780,0.1324,0.1038,24.99
+Girls' Apparel,1201,0.1186,0.1019,41.75
+Children's Clothing,652,0.1297,0.1015,357.1
+Women's Clothing,650,0.151,0.102,215.82
+Golf Apparel,441,0.1,0.1,52.82
+Fitness Accessories,309,0.1512,0.1026,53.27
+Men's Clothing,208,0.053,0.1027,210.85

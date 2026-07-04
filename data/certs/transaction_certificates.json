@@ -1,0 +1,46 @@
+{
+  "_provenance": "Synthetic Transaction Certificates, structurally modeled on Textile Exchange template ASR-205 and TE-TXL-POL-203 v4.0, including the real verification-URL format certificates.textileexchange.org/tc/NNNN. Data is fictional and labelled on camera.",
+  "_definition": "A Transaction Certificate (TC) verifies that a SPECIFIC shipment of goods actually contains the claimed certified material. Issued at each change of ownership; details match invoices/shipping documents. This is the evidence a per-product recycled-content claim requires.",
+  "transaction_certificates": [
+    {
+      "tcNo": "0417",
+      "standard": "Global Recycled Standard (GRS 4.0)",
+      "seller": "Atlas Textile Mills Ltd (TE-10237845)",
+      "buyer": "\u00c9lan Studio",
+      "relatedScopeCertificate": "SC-GRS-2026-10237845",
+      "shipmentRef": "INV-ATL-2026-1183",
+      "linkedSku": "GL-01",
+      "products": [
+        {
+          "productName": "recycled polyester filament \u2014 puffer shell fabric",
+          "netShippingWeightKg": 4200,
+          "claimedMaterial": "recycled polyester",
+          "certifiedRecycledContentPct": 40
+        }
+      ],
+      "status": "VALID",
+      "verificationUrl": "https://certificates.textileexchange.org/tc/0417",
+      "note": "Proves ONLY 40% certified recycled content for this specific shipment \u2014 contradicts the marketed '70% recycled polyester' claim (C1). SC is valid, but the TC does not substantiate 70%."
+    },
+    {
+      "tcNo": "0629",
+      "standard": "Global Organic Textile Standard (GOTS 7.0)",
+      "seller": "Verde Organics S.A. (TE-55810293)",
+      "buyer": "\u00c9lan Studio",
+      "relatedScopeCertificate": "SC-GOTS-2026-55810293",
+      "shipmentRef": "INV-VRD-2026-0904",
+      "linkedSku": "GL-03",
+      "products": [
+        {
+          "productName": "organic cotton woven fabric \u2014 wrap dress",
+          "netShippingWeightKg": 1800,
+          "claimedMaterial": "organic cotton",
+          "certifiedOrganicContentPct": 100
+        }
+      ],
+      "status": "VALID",
+      "verificationUrl": "https://certificates.textileexchange.org/tc/0629",
+      "note": "Substantiates the 'GOTS-certified organic cotton' claim (C3): SC valid AND TC confirms 100% organic cotton for this shipment."
+    }
+  ]
+}

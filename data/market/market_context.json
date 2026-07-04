@@ -1,0 +1,34 @@
+{
+  "_provenance": "Real, cited constants used by market_context() and the commercial upside model. Figures from public market reports (2025-2026). Sources listed per field.",
+  "sustainable_fashion_market": {
+    "value_2026_usd_bn": 11.0,
+    "value_2040_usd_bn": 46.0,
+    "cagr_pct": 10.81,
+    "source": "Roots Analysis, Sustainable Fashion Market report (2026)"
+  },
+  "sustainable_apparel_market_alt": {
+    "value_2026_usd_bn": 126.0,
+    "value_2036_usd_bn": 205.8,
+    "cagr_pct": 5.0,
+    "source": "Fact.MR, Sustainable Apparel Market (2026)"
+  },
+  "willingness_to_pay": {
+    "premium_pct_low": 9,
+    "premium_pct_high": 15,
+    "basis": "Premium consumers in North America/Europe will pay for garments with recognised certifications (GOTS, Fair Trade, Bluesign)",
+    "source": "McKinsey/Business of Fashion, cited in DataIntelo (2025)",
+    "nuance": "Stated willingness-to-pay is softening under inflation; actual behaviour weights price/convenience (McKinsey State of Fashion)."
+  },
+  "demand_signals": {
+    "gen_z_prioritise_sustainability_pct": 60,
+    "age_18_34_seek_verified_credentials_pct_2025": 73,
+    "age_18_34_seek_verified_credentials_pct_2021": 51,
+    "source": "McKinsey/BoF 2025 survey; Coherent Market Insights (2026)"
+  },
+  "recycled_polyester_baseline": {
+    "recycled_share_of_polyester_2024_pct": 12.0,
+    "from_plastic_bottles_pct": 98,
+    "textile_to_textile_share_pct": 1.0,
+    "source": "Textile Exchange Materials Market Report 2025"
+  }
+}
