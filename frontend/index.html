@@ -133,9 +133,11 @@
     .pill.checking { background: #2a2410; color: var(--amber); }
     .pill.substantiated { background: #102a1d; color: var(--green); }
     .pill.blocked { background: #2c1418; color: var(--red); }
+    .pill.needs-evidence { background: #2a2410; color: var(--amber); }
     .claim.checking { border-color: var(--amber); }
     .claim.substantiated { border-color: #1e5c3e; }
     .claim.blocked { border-color: var(--red); background: #1c1216; }
+    .claim.needs-evidence { border-color: #6b5a1e; }
     .claim .cite {
       margin-top: 0.5rem; font-size: 0.75rem; color: var(--amber); line-height: 1.45;
       border-left: 2px solid var(--amber); padding-left: 0.6rem;
@@ -359,7 +361,7 @@
       const prev = el.className.match(/substantiated|blocked/)?.[0];
       el.className = "claim " + status;
       const pill = el.querySelector(".pill");
-      pill.className = "pill " + status; pill.textContent = status;
+      pill.className = "pill " + status; pill.textContent = status.replace("-", " ");
       if (citation) {
         const cite = el.querySelector(".cite");
         cite.innerHTML = `<span class="doc">${hop || "citation"}:</span> ${citation}`
@@ -449,8 +451,10 @@
           if (ev.status && ev.status !== "checking") {
             const hop = ev.status === "blocked" ? "regulation" : "citation";
             setClaim(ev.claim_id, ev.status, ev.citation, ev.remediation, hop);
-            act(ev.status==="blocked"?"gate":"tool", ev.status==="blocked"?"⛔":"✓",
-              `<b>${ev.claim_id}</b> "${(ev.text||"").slice(0,32)}" → <b style="color:${ev.status==='blocked'?'var(--red)':'var(--green)'}">${ev.status}</b>`);
+            const vColor = ev.status==='blocked' ? 'var(--red)' : (ev.status==='substantiated' ? 'var(--green)' : 'var(--amber)');
+            const vIcon = ev.status==='blocked' ? "⛔" : (ev.status==='substantiated' ? "✓" : "⚠");
+            act(ev.status==="blocked"?"gate":"tool", vIcon,
+              `<b>${ev.claim_id}</b> "${(ev.text||"").slice(0,32)}" → <b style="color:${vColor}">${ev.status.replace("-"," ")}</b>`);
           } else if (ev.status === "checking") {
             setClaim(ev.claim_id, "checking");
           }
