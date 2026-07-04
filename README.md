@@ -10,6 +10,8 @@ It plans, calls tools across **multiple data types**, retrieves documents more t
 
 *Built solo at RAISE 2026 (team **ShipHappens**) for **Vultr Statement Two**, on Vultr Serverless Inference + Turnkey RAG, with Cursor.*
 
+**▶ Live demo (deployed on Vultr Compute): [http://45.32.76.147/frontend/index.html](http://45.32.76.147/frontend/index.html)**
+
 <!-- TODO: hero GIF of the compliance-catch: claim → needs-evidence → 2nd retrieval → BLOCKED + citation + score drop -->
 ![GreenLight — line launch agent](frontend/wow.gif)
 
@@ -48,17 +50,46 @@ GreenLight sits at the intersection: **capture the upside, drop only what you ca
 
 ---
 
+## The agent (this is a real tool-calling agent, not a script)
+
+GreenLight's decisions are driven by **`moonshotai/Kimi-K2.6`** running a **native tool-calling loop** on Vultr Serverless Inference — the model decides *which* tool to call and *when*, then reasons over the results. It is not a hardcoded pipeline.
+
+The loop (`greenlight/agents/agent.py`):
+
+1. Kimi receives the line brief + all 6 marketing claims and states its plan.
+2. It calls the **commercial tools** — `forecast_demand`, `market_context`, `project_line_margin`.
+3. For **each claim** it calls `search_regulations` (**retrieval #1**, Turnkey RAG). If a recycled-content claim isn't yet substantiated, it goes back for `lookup_supplier_cert` (**retrieval #2**) and runs `verify_recycled_content`.
+4. It submits a verdict per claim via `submit_claim_verdict` — a **grounding guard** rejects any `substantiated` verdict that lacks a document citation (this is what makes "0 hallucinated compliance" true, not aspirational).
+5. It calls `compute_risk_exposure`, then `finalize_determination`.
+
+A **human gate** then pauses the agent — the launch owner clicks **Approve & file** (or **Hold**) before the determination becomes a record. Every tool call, retrieval hop, and verdict streams live to the UI over SSE.
+
+> A deterministic fallback runs the *same* tools without the LLM (`GREENLIGHT_LIVE_LLM=0`) so the repo clones-and-runs with no keys and the demo never hard-stops.
+
+### Models — right model per job (Vultr Serverless Inference)
+
+| Job | Model | Status |
+|---|---|---|
+| **Agent brain** — plans, calls tools, decides | **`moonshotai/Kimi-K2.6`** | **Live** — drives the loop (`greenlight/agents/agent.py`) |
+| **Document-grounded retrieval reasoning** — "does this clause / cert substantiate the claim?" | **`deepseek-ai/DeepSeek-V4-Flash`** | **Live** — Turnkey RAG endpoint (`greenlight/sources/vultr_rag.py`) |
+| **Structured determination copy** | **`Qwen/Qwen3.6-27B`** | Verified on Vultr; determination currently assembled deterministically from tool outputs |
+
+Model IDs verified via `GET /v1/models` on 2026-07-04 (`scripts/smoke_vultr.py`, 16/16 green).
+
+---
+
 ## How it maps to Vultr Statement Two (the rubric)
 
 | Vultr asks for | GreenLight | Code |
 |---|---|---|
-| **Agent** (not retrieve-then-answer) | Multi-step loop w/ human gates + live trace | `greenlight/engine/coordinator.py` |
-| **Plans** | Commercial assessment + claims × regs | `greenlight/agents/planner.py` |
-| **Aggregates across data types** | Regulations + certs + Trends + margins + market constants | `greenlight/tools/` + `data/` |
+| **Agent** (not retrieve-then-answer) | **Kimi-K2.6 native tool-calling loop** + human gate + live trace | `greenlight/agents/agent.py` |
+| **Plans** | Kimi states its plan; commercial assessment + claims × regs | `greenlight/agents/agent.py`, `planner.py` |
+| **Aggregates across data types** | Regulations + certs + Trends + margins + market constants | `greenlight/agents/tooling.py` + `data/` |
 | **Predicts** | `forecast_demand()` → next-season demand index | `greenlight/tools/__init__.py` |
 | **Retrieves more than once** | Reg lookup (#1), then **supplier cert** (#2) on gap | `greenlight/sources/vultr_rag.py` |
-| **Calls tools** | `forecast_demand`, `market_context`, `project_margin`, `search_regulations`, `lookup_supplier_cert`, `verify_recycled_content`, `compute_risk_exposure` | `greenlight/tools/` |
-| **Makes decisions** | Per-claim verdict + **launch recommendation** | `greenlight/agents/claim_checker.py`, `determination.py` |
+| **Calls tools** | Agent chooses: `forecast_demand`, `market_context`, `project_line_margin`, `search_regulations`, `lookup_supplier_cert`, `verify_recycled_content`, `compute_risk_exposure`, `submit_claim_verdict`, `finalize_determination` | `greenlight/agents/tooling.py` |
+| **Makes decisions** | Per-claim verdict (grounding-guarded) + **launch recommendation** | `greenlight/agents/agent.py`, `claim_checker.py` |
+| **Human-in-the-loop** | Agent pauses for launch-owner sign-off before filing | `serve.py` (`WebHuman` + `/api/approve`) |
 | **Usable enterprise outcome** | Cited line-launch determination | `greenlight/agents/determination.py` |
 | **Grounds in documents** | Every blocked claim cites ECGT + supplier doc | `data/regulations/`, `data/certs/` |
 
@@ -76,16 +107,14 @@ GreenLight sits at the intersection: **capture the upside, drop only what you ca
 
 <sub>Vector source: [`frontend/architecture.svg`](frontend/architecture.svg)</sub>
 
-**Coordination engine** (planner → commercial tools → multi-hop retrieval → claim checker → aggregator) with **human gates** and **SSE event trace** to the UI. **Document layer:** two Vultr Turnkey RAG collections (`greenlight-regulations`, `greenlight-supplier-certs`) seeded from `data/`, with deterministic local keyword fallback so the demo never hard-stops.
-
-Models on Vultr Serverless Inference: `moonshotai/Kimi-K2.6` (brain), `deepseek-ai/DeepSeek-V4-Flash` (RAG reasoning), `Qwen/Qwen3.6-27B` (structured output). Details: [`docs/VULTR.md`](docs/VULTR.md).
+**Kimi-K2.6 agent** (plans → commercial tools → multi-hop retrieval → per-claim verdicts → aggregation) with a **human gate** and **SSE event trace** to the UI. **Document layer:** two Vultr Turnkey RAG collections (`greenlight-regulations`, `greenlight-supplier-certs`) seeded from `data/`, with deterministic local keyword fallback so the demo never hard-stops. Model roles: see [Models](#models--right-model-per-job-vultr-serverless-inference) above and [`docs/VULTR.md`](docs/VULTR.md).
 
 ---
 
 ## Quick start
 
 ```bash
-python3 serve.py                    # http://localhost:8000/frontend/index.html → ▶ Run live
+python3 serve.py                    # http://localhost:8000/frontend/index.html → ▶ Run compliance review
 python3 scripts/demo_test.py        # assertions: 4/6 cleared, 2 blocked
 python3 greenlight/run.py           # CLI trace (~instant)
 python3 scripts/smoke_data.py       # data + retrieval integrity (17 checks)
@@ -99,25 +128,39 @@ GREENLIGHT_LIVE_RAG=1 python3 scripts/live_run.py   # ~60–90s, live Turnkey RA
 GREENLIGHT_LIVE_RAG=1 GREENLIGHT_LIVE_LLM=1 python3 serve.py
 ```
 
-**Deploy on Vultr Compute:** [`docs/DEPLOY.md`](docs/DEPLOY.md) — `python3 scripts/deploy_vultr.py` (requires Account API IP allowlist).
-
-Deployed demo (Vultr Compute): <!-- TODO URL after deploy -->
+**Deployed on Vultr Compute** (Ubuntu 22.04, Los Angeles): **[http://45.32.76.147/frontend/index.html](http://45.32.76.147/frontend/index.html)** — one-command deploy via `python3 scripts/deploy_vultr.py` (systemd service, live RAG + inference on). Full guide: [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ---
 
-## Data & honesty
+## Data — real, cited, reproducible
 
-| Layer | Source | Real / synthetic |
+GreenLight runs on **real public data wherever the decision depends on facts.** Only the fictional brand's *marketing claims* and its suppliers' *certificates* are synthetic — and both are labelled as such on screen. Every real series is either committed or re-fetchable via `python3 scripts/fetch_data.py`, and data integrity is checked by `scripts/smoke_data.py` (17/17 green).
+
+**Regulation corpus — EU Directive 2024/825 (ECGT).** Verbatim excerpts from [EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024L0825) — the Annex I ban on generic environmental claims and the substantiation duty. Seeded into the `greenlight-regulations` Vultr Turnkey RAG collection; this is **retrieval #1** and the source of every on-screen citation. (`data/regulations/ecgt_2024_825.md`)
+
+**Demand signal — Google Trends.** 261 weekly observations (2021–2026) for three queries: *sustainable fashion*, *recycled polyester*, *organic cotton*. `forecast_demand()` derives the next-season demand index from the recent-vs-prior 12-week averages. (`data/demand/trends_sustainability.csv`)
+
+**Margins — DataCo Smart Supply Chain.** Real apparel profit ratios distilled from the DataCo Supply Chain dataset into per-category benchmarks used by `project_margin()` for line-contribution economics. The raw multi-hundred-MB source is gitignored; the derived benchmark CSV is committed. (`data/margins/datac_apparel_benchmarks.csv`)
+
+**Market & willingness-to-pay — cited constants.** Sustainable fashion market **~$11B (2026), 10.8% CAGR** (Roots Analysis); **9–15% WTP** premium for verified certifications (McKinsey/Business of Fashion); recycled-polyester baseline (Textile Exchange Materials Market Report 2025). Each value carries its `source` field. (`data/market/market_context.json`)
+
+**Enforcement context.** Shein **€40M** (France DGCCRF, Jul 2025) for unsubstantiated environmental claims; the **≤4% of annual turnover** penalty basis (Omnibus 2019/2161). Real and cited. (`docs/COMPLIANCE_BASIS.md`)
+
+**Product line — synthetic scenario.** A 6-SKU AW26 line whose *attributes* (categories, fibre compositions, price bands) are modeled on the open Livostyle catalog; the *brand* and its *marketing claims* are authored for the scenario. (`data/line/aw26_line.json`)
+
+**Supplier certificates — synthetic, structurally authentic.** GRS/RCS **Scope** + **Transaction** Certificates following the Textile Exchange ASR-204/205 structure. The demo's key realism: the Scope Certificate is valid, but the Transaction Certificate for the shipment covers only **40%** vs the claimed **70%** — which is exactly how real recycled-content claims fail. Seeded into the `greenlight-supplier-certs` collection; this is **retrieval #2**. (`data/certs/`)
+
+| Dataset | Source | Real / synthetic |
 |---|---|---|
-| **Regulations** | ECGT (EU) 2024/825 verbatim excerpts | **Real** ([EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024L0825)) |
-| **Enforcement context** | Shein €40M, 4% penalty, recycled-polyester baseline | **Real, cited** |
-| **Demand signal** | Google Trends CSV (261 weeks, 3 keywords) | **Real** (`data/demand/trends_sustainability.csv`) |
-| **Margins** | DataCo Smart Supply Chain → apparel benchmarks | **Real** (`data/margins/datac_apparel_benchmarks.csv`) |
-| **Market / WTP** | Roots Analysis, McKinsey/BoF, Fact.MR | **Real, cited** (`data/market/market_context.json`) |
-| **Product line** | 6-SKU AW26 line (Livostyle-derived attributes) | Attributes **real**; marketing **claims synthetic (scenario)** |
-| **Supplier certs** | GRS/RCS Scope + Transaction Certificates | **Synthetic**, structurally authentic (Textile Exchange ASR-204/205) |
+| Regulations | ECGT (EU) 2024/825 excerpts (EUR-Lex) | **Real** |
+| Enforcement context | Shein €40M, 4% penalty basis | **Real, cited** |
+| Demand signal | Google Trends (261 weeks, 3 keywords) | **Real** |
+| Margins | DataCo Smart Supply Chain → apparel benchmarks | **Real** |
+| Market / WTP | Roots Analysis, McKinsey/BoF, Textile Exchange | **Real, cited** |
+| Product line | 6-SKU AW26 line (Livostyle-derived attributes) | Attributes **real**; claims **synthetic (scenario)** |
+| Supplier certs | GRS/RCS Scope + Transaction Certificates | **Synthetic**, structurally authentic |
 
-Full provenance: [`data/README.md`](data/README.md). Re-fetch real series: `python3 scripts/fetch_data.py`.
+Full provenance table: [`data/README.md`](data/README.md).
 
 ---
 
@@ -129,4 +172,4 @@ Architected and built **solo** at RAISE 2026 by **[NAME]** (team ShipHappens). C
 
 ## Status
 
-**Demo-ready:** engine + UI + real data staged; live Vultr RAG verified (`scripts/live_run.py` ~69s). Deploy script + manual bootstrap ready ([`docs/DEPLOY.md`](docs/DEPLOY.md)). UI revamp + backup video pending.
+**Deployed & live on Vultr:** Kimi-K2.6 agent loop + Turnkey RAG verified end-to-end (`scripts/live_run.py`, `scripts/smoke_vultr.py` 16/16). Running at [http://45.32.76.147/frontend/index.html](http://45.32.76.147/frontend/index.html). Enterprise demo UI with live human-in-the-loop gate. Backup video pending.

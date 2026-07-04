@@ -11,9 +11,9 @@ from greenlight.engine.coordinator import Coordinator
 from greenlight.human.channel import DemoHuman
 
 
-def run(*, on_emit=None):
+def run(*, on_emit=None, human=None):
     events = EventStream(on_emit=on_emit)
-    coord = Coordinator(events, DemoHuman())
+    coord = Coordinator(events, human or DemoHuman())
     return coord.run()
 
 

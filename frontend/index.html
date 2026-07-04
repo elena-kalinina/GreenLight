@@ -3,222 +3,524 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>GreenLight — line launch agent</title>
+  <title>GreenLight — line-launch compliance agent</title>
   <style>
     :root {
-      --bg: #0a0e14;
-      --panel: #141b26;
-      --text: #e6edf3;
-      --muted: #7d8fa9;
-      --green: #3dd68c;
-      --red: #f07178;
-      --amber: #ffc777;
-      --accent: #59c2ff;
-      --border: #243044;
+      --bg: #0a0e14; --panel: #131b28; --panel2: #0f1620; --card: #172231;
+      --text: #e8eef6; --muted: #8798ae; --faint: #5a6b82;
+      --green: #3dd68c; --red: #f0717a; --amber: #ffc777; --accent: #59c2ff;
+      --violet: #b48cff; --border: #223247; --border2: #1a2636;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(1200px 600px at 80% -10%, #12203033, transparent), var(--bg);
+      color: var(--text); font-size: 14px; line-height: 1.5;
+    }
+    /* Header */
     header {
-      padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 1.4rem; border-bottom: 1px solid var(--border2);
+      background: #0c121b; position: sticky; top: 0; z-index: 20;
     }
-    header h1 { margin: 0; font-size: 1.2rem; }
-    header p { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.8rem; }
-    button {
-      background: var(--accent); color: #031018; border: none; padding: 0.55rem 1rem;
-      border-radius: 8px; font-weight: 700; cursor: pointer;
+    .brand { display: flex; align-items: center; gap: 0.6rem; }
+    .logo {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--green), var(--accent));
+      display: grid; place-items: center; font-weight: 800; color: #04121a;
     }
-    button:disabled { opacity: 0.45; cursor: wait; }
-    .metrics {
-      display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem;
-      padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border); background: #0d1219;
+    .brand h1 { margin: 0; font-size: 1.05rem; letter-spacing: -0.01em; }
+    .brand p { margin: 0; font-size: 0.72rem; color: var(--muted); }
+    .head-right { display: flex; align-items: center; gap: 0.6rem; }
+    .badge {
+      font-size: 0.68rem; color: var(--muted); border: 1px solid var(--border);
+      padding: 0.28rem 0.55rem; border-radius: 999px; background: #0e1622;
     }
-    .metric { text-align: center; }
-    .metric .val { font-size: 1.1rem; font-weight: 700; }
-    .metric .lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-    main {
-      display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 1rem;
-      padding: 1rem 1.5rem 2rem; max-width: 1280px; margin: 0 auto;
+    .badge b { color: var(--accent); font-weight: 700; }
+    .statuspill {
+      font-size: 0.7rem; padding: 0.3rem 0.7rem; border-radius: 999px;
+      background: #12202f; color: var(--muted); border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.4rem;
     }
-    @media (max-width: 960px) { main { grid-template-columns: 1fr; } .metrics { grid-template-columns: repeat(3,1fr); } }
-    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
-    .panel h2 { margin: 0 0 0.6rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-    .score-wrap { margin-bottom: 0.75rem; }
-    .score-bar { height: 8px; background: #1e2836; border-radius: 4px; overflow: hidden; }
-    .score-fill { height: 100%; background: var(--green); width: 100%; transition: width 0.4s ease, background 0.3s; }
-    .score-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
-    #commercial { font-size: 0.85rem; line-height: 1.55; margin-bottom: 0.75rem; padding: 0.6rem; background: #101722; border-radius: 8px; }
-    #claims { display: flex; flex-direction: column; gap: 0.45rem; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+    .statuspill.live .dot { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 1.4s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+    /* Brief bar */
+    .brief {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      padding: 1rem 1.4rem; border-bottom: 1px solid var(--border2);
+      background: linear-gradient(180deg, #101a27, #0c131d);
+    }
+    .brief-main { display: flex; flex-direction: column; gap: 0.35rem; }
+    .brief .q { font-size: 1.02rem; font-weight: 650; }
+    .brief .q .hl { color: var(--accent); }
+    .lookbook { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+    .lookbook img {
+      width: 46px; height: 58px; object-fit: cover; border-radius: 8px;
+      border: 1px solid var(--border); background: #0b1119; transition: transform 0.15s, border-color 0.2s;
+    }
+    .lookbook img:hover { transform: translateY(-2px) scale(1.04); border-color: var(--accent); }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .chip {
+      font-size: 0.72rem; color: var(--muted); background: #0f1826;
+      border: 1px solid var(--border); border-radius: 6px; padding: 0.22rem 0.5rem;
+    }
+    .chip b { color: var(--text); }
+    .runbtn {
+      background: linear-gradient(135deg, var(--green), #2fb978); color: #04121a;
+      border: none; padding: 0.7rem 1.3rem; border-radius: 10px; font-weight: 750;
+      font-size: 0.9rem; cursor: pointer; white-space: nowrap; box-shadow: 0 6px 20px #3dd68c22;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .runbtn:hover:not(:disabled) { transform: translateY(-1px); }
+    .runbtn:disabled { opacity: 0.5; cursor: wait; box-shadow: none; }
+
+    /* Layout */
+    main { display: grid; grid-template-columns: 1.55fr 1fr; gap: 1rem; padding: 1.1rem 1.4rem 2.5rem; max-width: 1420px; margin: 0 auto; }
+    @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
+    .col { display: flex; flex-direction: column; gap: 0.9rem; min-width: 0; }
+    .card { background: var(--panel); border: 1px solid var(--border2); border-radius: 14px; padding: 1rem 1.1rem; }
+    .card h2 { margin: 0 0 0.7rem; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--faint); }
+
+    /* Conversation */
+    #convo { display: flex; flex-direction: column; gap: 0.7rem; }
+    .msg { display: flex; gap: 0.6rem; align-items: flex-start; }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 8px; flex: none; display: grid; place-items: center;
+      font-size: 0.85rem; font-weight: 800;
+    }
+    .avatar.agent { background: linear-gradient(135deg, var(--accent), var(--violet)); color: #06111c; }
+    .avatar.sys { background: #1b2735; color: var(--muted); }
+    .bubble {
+      background: var(--card); border: 1px solid var(--border2); border-radius: 12px;
+      padding: 0.6rem 0.8rem; font-size: 0.88rem; max-width: 100%;
+    }
+    .bubble .who { font-size: 0.68rem; color: var(--accent); font-weight: 700; margin-bottom: 0.15rem; }
+    .bubble.think { color: var(--muted); font-style: italic; }
+    .typing span { display: inline-block; width: 5px; height: 5px; margin: 0 1px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+    .typing span:nth-child(2){ animation-delay: 0.2s;} .typing span:nth-child(3){ animation-delay: 0.4s;}
+    @keyframes blink { 0%,100%{opacity:0.2;} 50%{opacity:1;} }
+
+    /* Commercial */
+    .metrics3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+    .mini { background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; padding: 0.6rem 0.7rem; }
+    .mini .lbl { font-size: 0.63rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); }
+    .mini .val { font-size: 1.15rem; font-weight: 750; margin-top: 0.15rem; }
+    .mini .sub { font-size: 0.66rem; color: var(--muted); }
+    .mini.pending .val { color: var(--faint); }
+
+    /* Score */
+    .scorehead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem; }
+    .scorehead .n { font-size: 0.78rem; color: var(--muted); }
+    .score-bar { height: 8px; background: #0e1622; border-radius: 5px; overflow: hidden; border: 1px solid var(--border2); }
+    .score-fill { height: 100%; width: 100%; background: var(--green); transition: width 0.5s ease, background 0.3s; }
+
+    /* Claims */
+    #claims { display: flex; flex-direction: column; gap: 0.5rem; }
     .claim {
-      padding: 0.6rem 0.7rem; border-radius: 8px; border: 1px solid var(--border);
-      font-size: 0.82rem; transition: border-color 0.25s, background 0.25s;
+      border: 1px solid var(--border2); border-radius: 11px; padding: 0.6rem 0.75rem; background: var(--panel2);
+      transition: border-color 0.3s, background 0.3s, transform 0.2s; position: relative;
     }
-    .claim .id { color: var(--muted); font-size: 0.72rem; }
-    .claim .status { font-weight: 600; margin-top: 0.2rem; }
-    .claim .cite { font-size: 0.72rem; color: var(--amber); margin-top: 0.35rem; display: none; line-height: 1.35; }
-    .claim.show-cite .cite { display: block; }
-    .claim.pending { opacity: 0.55; }
-    .claim.checking, .claim.needs-evidence { border-color: var(--amber); }
-    .claim.substantiated { border-color: var(--green); background: rgba(61,214,140,0.07); }
-    .claim.blocked { border-color: var(--red); background: rgba(240,113,120,0.09); }
-    .claim.blocked .status { color: var(--red); }
-    .claim.substantiated .status { color: var(--green); }
-    #determination {
-      margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
-      background: rgba(89,194,255,0.07); border: 1px solid var(--accent); display: none;
+    .claim .top { display: flex; align-items: center; gap: 0.65rem; }
+    .claim .thumb { width: 46px; height: 46px; flex: none; border-radius: 9px; object-fit: cover; background: #0b1119; border: 1px solid var(--border2); }
+    .claim .meta { flex: 1; min-width: 0; }
+    .claim .txt { font-weight: 600; font-size: 0.88rem; }
+    .claim .sku { font-size: 0.66rem; color: var(--faint); }
+    .pill { font-size: 0.66rem; font-weight: 750; padding: 0.2rem 0.55rem; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+    .pill.pending { background: #1b2735; color: var(--faint); }
+    .pill.checking { background: #2a2410; color: var(--amber); }
+    .pill.substantiated { background: #102a1d; color: var(--green); }
+    .pill.blocked { background: #2c1418; color: var(--red); }
+    .claim.checking { border-color: var(--amber); }
+    .claim.substantiated { border-color: #1e5c3e; }
+    .claim.blocked { border-color: var(--red); background: #1c1216; }
+    .claim .cite {
+      margin-top: 0.5rem; font-size: 0.75rem; color: var(--amber); line-height: 1.45;
+      border-left: 2px solid var(--amber); padding-left: 0.6rem;
+      max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.4s;
     }
-    #determination.visible { display: block; }
-    #determination strong { color: var(--accent); font-size: 0.95rem; }
-    #trace {
-      font-family: ui-monospace, monospace; font-size: 0.74rem;
-      max-height: 520px; overflow-y: auto; line-height: 1.4;
-    }
-    #trace div { padding: 0.12rem 0; color: var(--muted); }
-    #trace .retrieval { color: var(--amber); }
-    #trace .blocked { color: var(--red); }
-    #trace .actor { color: var(--accent); }
-    .caption { font-size: 0.65rem; color: var(--muted); margin-top: 0.75rem; }
+    .claim.reveal .cite { max-height: 220px; opacity: 1; }
+    .claim .cite .doc { color: var(--muted); }
+    .claim .rem { margin-top: 0.35rem; font-size: 0.74rem; color: var(--text); }
+    .claim .rem b { color: var(--green); }
+    .hop { display: inline-block; font-size: 0.6rem; color: var(--accent); background: #10202f; border: 1px solid var(--border); border-radius: 5px; padding: 0.05rem 0.3rem; margin-left: 0.3rem; }
+
+    /* Gate */
+    #gate { border: 1px solid var(--amber); background: linear-gradient(180deg, #241d0d, #171208); display: none; }
+    #gate.show { display: block; animation: rise 0.35s ease; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    #gate .q2 { font-size: 0.92rem; font-weight: 650; margin-bottom: 0.2rem; }
+    #gate .why { font-size: 0.76rem; color: var(--muted); margin-bottom: 0.7rem; }
+    .gate-actions { display: flex; gap: 0.6rem; }
+    .gbtn { border: none; border-radius: 9px; padding: 0.55rem 1rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+    .gbtn.approve { background: var(--green); color: #04121a; }
+    .gbtn.hold { background: #2a3040; color: var(--text); border: 1px solid var(--border); }
+
+    /* Determination */
+    #memo { display: none; border: 1px solid var(--accent); background: linear-gradient(180deg, #0e1f2e, #0c1622); }
+    #memo.show { display: block; animation: rise 0.4s ease; }
+    #memo .rec { font-size: 1.15rem; font-weight: 800; }
+    #memo .rec.green { color: var(--green); } #memo .rec.hold { color: var(--amber); }
+    #memo .sum { font-size: 0.86rem; color: var(--text); margin: 0.4rem 0 0.7rem; }
+    .memo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+    .memo-grid .mini .val { font-size: 1rem; }
+
+    /* Rail */
+    .rail-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.9rem; }
+    .kpi { text-align: center; background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; padding: 0.55rem 0.3rem; }
+    .kpi .v { font-size: 1.1rem; font-weight: 800; } .kpi .l { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); }
+    .now { font-size: 0.78rem; color: var(--accent); margin-bottom: 0.6rem; min-height: 1.1rem; display: flex; align-items: center; gap: 0.4rem; }
+    #activity { display: flex; flex-direction: column; gap: 0.3rem; max-height: 380px; overflow-y: auto; padding-right: 0.2rem; }
+    .act { display: flex; gap: 0.5rem; align-items: baseline; font-size: 0.76rem; padding: 0.2rem 0; border-bottom: 1px solid var(--border2); }
+    .act .ic { flex: none; width: 16px; text-align: center; }
+    .act .body { color: var(--muted); }
+    .act .body b { color: var(--text); font-weight: 650; }
+    .act.tool .ic { color: var(--green); } .act.hop .ic { color: var(--accent); }
+    .act.call .ic { color: var(--violet); } .act.gate .ic { color: var(--amber); }
+    .act.done .ic { color: var(--green); }
+    .act code { color: var(--accent); font-size: 0.72rem; }
+    details.raw { margin-top: 0.8rem; }
+    details.raw summary { font-size: 0.68rem; color: var(--faint); cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; }
+    #rawlog { font-family: ui-monospace, monospace; font-size: 0.68rem; color: var(--faint); max-height: 200px; overflow-y: auto; margin-top: 0.5rem; white-space: pre-wrap; }
+    .caption { font-size: 0.66rem; color: var(--faint); margin-top: 0.8rem; line-height: 1.5; }
+    .empty { color: var(--faint); font-size: 0.82rem; }
+    ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: #223247; border-radius: 4px; }
   </style>
 </head>
 <body>
   <header>
-    <div>
-      <h1>GreenLight</h1>
-      <p>Élan Studio · AW26 · enterprise line-launch agent</p>
-    </div>
-    <button id="runBtn" type="button">▶ Run live</button>
-  </header>
-  <div class="metrics">
-    <div class="metric"><div class="val" id="mCleared">—</div><div class="lbl">Cleared</div></div>
-    <div class="metric"><div class="val" id="mBlocked">—</div><div class="lbl">Blocked</div></div>
-    <div class="metric"><div class="val" id="mCited">—</div><div class="lbl">Cited</div></div>
-    <div class="metric"><div class="val" id="mExposure">—</div><div class="lbl">Exposure avoided</div></div>
-    <div class="metric"><div class="val" id="mConf">—</div><div class="lbl">Confidence</div></div>
-  </div>
-  <main>
-    <section class="panel">
-      <h2>Line review</h2>
-      <div class="score-wrap">
-        <div class="score-bar"><div class="score-fill" id="scoreFill"></div></div>
-        <div class="score-label" id="scoreLabel">Compliance score · waiting</div>
+    <div class="brand">
+      <div class="logo">G</div>
+      <div>
+        <h1>GreenLight</h1>
+        <p>Enterprise line-launch compliance agent</p>
       </div>
-      <div id="commercial">Waiting for run…</div>
-      <div id="claims"></div>
-      <div id="determination"></div>
-      <p class="caption">Real & cited: EU regulations, Google Trends, DataCo margins, market stats. Synthetic (labelled): line claims + supplier certs.</p>
-    </section>
-    <section class="panel">
-      <h2>Agent trace</h2>
-      <div id="trace"></div>
-    </section>
+    </div>
+    <div class="head-right">
+      <span class="badge">runs on <b>Vultr</b> · Kimi-K2.6 + Turnkey RAG</span>
+      <span class="statuspill" id="statusPill"><span class="dot"></span><span id="statusText">Idle</span></span>
+    </div>
+  </header>
+
+  <section class="brief">
+    <div class="brief-main">
+      <div class="q">Can we green-light <span class="hl">Élan Studio AW26</span> for launch under EU Directive 2024/825?</div>
+      <div class="chips">
+        <span class="chip"><b>€2.0B</b> turnover</span>
+        <span class="chip"><b>6</b> SKUs</span>
+        <span class="chip"><b>6</b> marketing claims</span>
+        <span class="chip">Season <b>AW26</b></span>
+        <span class="chip">Desk: <b>Responsible Sourcing</b></span>
+      </div>
+      <div class="lookbook">
+        <img src="assets/gl01_puffer.png" title="GL-01 · Aurora Puffer Jacket" alt="Aurora Puffer Jacket"/>
+        <img src="assets/gl02_sweater.png" title="GL-02 · Terra Knit Sweater" alt="Terra Knit Sweater"/>
+        <img src="assets/gl03_dress.png" title="GL-03 · Meadow Wrap Dress" alt="Meadow Wrap Dress"/>
+        <img src="assets/gl04_lounge.png" title="GL-04 · Cloud Lounge Set" alt="Cloud Lounge Set"/>
+        <img src="assets/gl05_trench.png" title="GL-05 · Harbor Trench Coat" alt="Harbor Trench Coat"/>
+        <img src="assets/gl06_trousers.png" title="GL-06 · Sable Tailored Trousers" alt="Sable Tailored Trousers"/>
+      </div>
+    </div>
+    <button class="runbtn" id="runBtn">▶ Run compliance review</button>
+  </section>
+
+  <main>
+    <!-- LEFT: analyst stage -->
+    <div class="col">
+      <div class="card">
+        <h2>GreenLight agent</h2>
+        <div id="convo">
+          <div class="empty">Press <b>Run compliance review</b> to brief the agent. It will size the commercial upside, then check every marketing claim against the regulation and supplier evidence — pausing for your sign-off before filing.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Commercial upside</h2>
+        <div class="metrics3">
+          <div class="mini pending" id="mDemand"><div class="lbl">Demand index</div><div class="val">—</div><div class="sub">Google Trends</div></div>
+          <div class="mini pending" id="mMarket"><div class="lbl">Market · WTP</div><div class="val">—</div><div class="sub">cited reports</div></div>
+          <div class="mini pending" id="mMargin"><div class="lbl">Line contribution</div><div class="val">—</div><div class="sub">DataCo margins</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="scorehead">
+          <h2 style="margin:0;">Claim compliance</h2>
+          <span class="n" id="scoreN">6 pending</span>
+        </div>
+        <div class="score-bar"><div class="score-fill" id="scoreFill"></div></div>
+        <div id="claims" style="margin-top:0.7rem;"></div>
+      </div>
+
+      <div class="card" id="gate">
+        <div class="q2" id="gateQ">Human sign-off required</div>
+        <div class="why" id="gateWhy"></div>
+        <div class="gate-actions">
+          <button class="gbtn approve" id="gateApprove">✓ Approve &amp; file</button>
+          <button class="gbtn hold" id="gateHold">Hold for revision</button>
+        </div>
+      </div>
+
+      <div class="card" id="memo">
+        <h2>Launch determination</h2>
+        <div class="rec" id="memoRec">—</div>
+        <div class="sum" id="memoSum"></div>
+        <div class="memo-grid">
+          <div class="mini"><div class="lbl">Confidence</div><div class="val" id="memoConf">—</div></div>
+          <div class="mini"><div class="lbl">Fine exposure avoided</div><div class="val" id="memoExp">—</div></div>
+          <div class="mini"><div class="lbl">Claims cleared</div><div class="val" id="memoCleared">—</div></div>
+          <div class="mini"><div class="lbl">Decisions cited</div><div class="val" id="memoCited">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: machinery -->
+    <div class="col">
+      <div class="card">
+        <h2>Live metrics</h2>
+        <div class="rail-metrics">
+          <div class="kpi"><div class="v" id="kCleared">—</div><div class="l">Cleared</div></div>
+          <div class="kpi"><div class="v" id="kBlocked">—</div><div class="l">Blocked</div></div>
+          <div class="kpi"><div class="v" id="kCited">—</div><div class="l">Cited</div></div>
+        </div>
+        <div class="now" id="nowLine"></div>
+        <h2>Agent activity</h2>
+        <div id="activity"><div class="empty">Awaiting run…</div></div>
+        <details class="raw"><summary>Raw event log</summary><div id="rawlog"></div></details>
+        <p class="caption">Real &amp; cited: EU Directive 2024/825, Google Trends, DataCo margins, market reports. Synthetic (labelled): line marketing claims + supplier certificates. Grounding via Vultr Turnkey RAG.</p>
+      </div>
+    </div>
   </main>
+
   <script>
     const CLAIMS = [
-      { id: "C1", text: "70% recycled polyester", sku: "GL-01" },
-      { id: "C2", text: "eco-friendly", sku: "GL-02" },
-      { id: "C3", text: "GOTS-certified organic cotton", sku: "GL-03" },
-      { id: "C4", text: "OEKO-TEX Standard 100", sku: "GL-04" },
-      { id: "C5", text: "water-repellent 8,000mm", sku: "GL-05" },
-      { id: "C6", text: "reinforced durability seams", sku: "GL-06" },
+      { id: "C1", sku: "GL-01", name: "Aurora Puffer Jacket", img: "gl01_puffer.png", text: "70% recycled polyester" },
+      { id: "C2", sku: "GL-02", name: "Terra Knit Sweater", img: "gl02_sweater.png", text: "eco-friendly" },
+      { id: "C3", sku: "GL-03", name: "Meadow Wrap Dress", img: "gl03_dress.png", text: "GOTS-certified organic cotton" },
+      { id: "C4", sku: "GL-04", name: "Cloud Lounge Set", img: "gl04_lounge.png", text: "OEKO-TEX Standard 100 certified" },
+      { id: "C5", sku: "GL-05", name: "Harbor Trench Coat", img: "gl05_trench.png", text: "water-repellent, 8,000mm hydrostatic head" },
+      { id: "C6", sku: "GL-06", name: "Sable Tailored Trousers", img: "gl06_trousers.png", text: "reinforced seams for durability" },
     ];
-    let cleared = 0, blocked = 0;
-    const claimsEl = document.getElementById("claims");
-    const traceEl = document.getElementById("trace");
-    const commercialEl = document.getElementById("commercial");
-    const detEl = document.getElementById("determination");
-    const runBtn = document.getElementById("runBtn");
-    const scoreFill = document.getElementById("scoreFill");
-    const scoreLabel = document.getElementById("scoreLabel");
+    const $ = (id) => document.getElementById(id);
+    const convo = $("convo"), claimsEl = $("claims"), activity = $("activity"), rawlog = $("rawlog");
+    const runBtn = $("runBtn"), gate = $("gate");
+    let sid = null, cleared = 0, blocked = 0, thinkBubble = null, userHeld = false, memoData = null;
 
-    function initClaims() {
-      cleared = 0; blocked = 0;
-      claimsEl.innerHTML = CLAIMS.map(c =>
-        `<div class="claim pending" data-id="${c.id}">
-          <span class="id">${c.id} · ${c.sku}</span><br>${c.text}
-          <div class="status">pending</div>
+    function reset() {
+      cleared = 0; blocked = 0; sid = null; thinkBubble = null; userHeld = false; memoData = null;
+      convo.innerHTML = ""; activity.innerHTML = ""; rawlog.textContent = "";
+      gate.classList.remove("show"); $("memo").classList.remove("show");
+      $("nowLine").textContent = "";
+      claimsEl.innerHTML = CLAIMS.map(c => `
+        <div class="claim pending" data-id="${c.id}">
+          <div class="top">
+            <img class="thumb" src="assets/${c.img}" alt="${c.name}"/>
+            <div class="meta"><div class="txt">"${c.text}"</div><div class="sku">${c.id} · ${c.sku} · ${c.name}</div></div>
+            <span class="pill pending">pending</span>
+          </div>
           <div class="cite"></div>
-        </div>`
-      ).join("");
-      scoreFill.style.width = "100%";
-      scoreFill.style.background = "var(--green)";
-      scoreLabel.textContent = "Compliance score · 6/6 pending";
-      ["mCleared","mBlocked","mCited","mExposure","mConf"].forEach(id => document.getElementById(id).textContent = "—");
+        </div>`).join("");
+      ["mDemand","mMarket","mMargin"].forEach(id => { $(id).classList.add("pending"); $(id).querySelector(".val").textContent = "—"; });
+      ["kCleared","kBlocked","kCited"].forEach(id => $(id).textContent = "—");
+      $("scoreFill").style.width = "100%"; $("scoreFill").style.background = "var(--green)";
+      $("scoreN").textContent = "6 pending";
     }
-    initClaims();
+    reset();
 
-    function updateScore() {
-      const total = CLAIMS.length;
-      const pct = Math.round((cleared / total) * 100);
-      scoreFill.style.width = pct + "%";
-      scoreFill.style.background = blocked ? "var(--amber)" : "var(--green)";
-      scoreLabel.textContent = `Compliance score · ${cleared}/${total} substantiated · ${blocked} blocked`;
-      document.getElementById("mCleared").textContent = cleared;
-      document.getElementById("mBlocked").textContent = blocked;
+    function addMsg(who, text, cls="") {
+      const wrap = document.createElement("div"); wrap.className = "msg";
+      wrap.innerHTML = `<div class="avatar ${who==='agent'?'agent':'sys'}">${who==='agent'?'◆':'i'}</div>
+        <div class="bubble ${cls}"><div class="who">${who==='agent'?'GreenLight · Kimi-K2.6':'System'}</div><div class="body"></div></div>`;
+      wrap.querySelector(".body").textContent = text;
+      convo.appendChild(wrap); convo.scrollTop = convo.scrollHeight;
+      return wrap;
     }
+    function showThinking() {
+      if (thinkBubble) return;
+      thinkBubble = document.createElement("div"); thinkBubble.className = "msg";
+      thinkBubble.innerHTML = `<div class="avatar agent">◆</div><div class="bubble think"><div class="who">GreenLight · Kimi-K2.6</div>
+        <div class="typing"><span></span><span></span><span></span></div></div>`;
+      convo.appendChild(thinkBubble); convo.scrollTop = convo.scrollHeight;
+    }
+    function clearThinking() { if (thinkBubble) { thinkBubble.remove(); thinkBubble = null; } }
 
-    function setClaim(id, status, extra = "", citation = "") {
-      const el = claimsEl.querySelector(`[data-id="${id}"]`);
-      if (!el) return;
+    function act(cls, icon, html) {
+      if (activity.querySelector(".empty")) activity.innerHTML = "";
+      const d = document.createElement("div"); d.className = "act " + cls;
+      d.innerHTML = `<span class="ic">${icon}</span><span class="body">${html}</span>`;
+      activity.appendChild(d); activity.scrollTop = activity.scrollHeight;
+    }
+    function now(text) { $("nowLine").innerHTML = text ? `● ${text}` : ""; }
+
+    function setClaim(id, status, citation, remediation, hop) {
+      const el = claimsEl.querySelector(`[data-id="${id}"]`); if (!el) return;
       const prev = el.className.match(/substantiated|blocked/)?.[0];
-      el.className = `claim ${status.replace(/_/g, "-")}` + (citation ? " show-cite" : "");
-      el.querySelector(".status").textContent = status.replace(/_/g, " ") + (extra ? ` — ${extra}` : "");
-      if (citation) el.querySelector(".cite").textContent = citation;
+      el.className = "claim " + status;
+      const pill = el.querySelector(".pill");
+      pill.className = "pill " + status; pill.textContent = status;
+      if (citation) {
+        const cite = el.querySelector(".cite");
+        cite.innerHTML = `<span class="doc">${hop || "citation"}:</span> ${citation}`
+          + (remediation ? `<div class="rem"><b>Fix →</b> ${remediation}</div>` : "");
+        el.classList.add("reveal");
+      }
       if (status === "substantiated" && prev !== "substantiated") cleared++;
       if (status === "blocked" && prev !== "blocked") blocked++;
-      if (status === "substantiated" || status === "blocked") updateScore();
+      updateScore();
+    }
+    function updateScore() {
+      const total = CLAIMS.length, pct = Math.round((cleared/total)*100);
+      $("scoreFill").style.width = pct + "%";
+      $("scoreFill").style.background = blocked ? "var(--amber)" : "var(--green)";
+      $("scoreN").textContent = `${cleared} cleared · ${blocked} blocked`;
+      $("kCleared").textContent = cleared; $("kBlocked").textContent = blocked;
+    }
+    function fillCommercial(ev) {
+      if (ev.actor === "forecast_demand") {
+        const m = $("mDemand"); m.classList.remove("pending");
+        m.querySelector(".val").textContent = ev.demand_index ?? "—";
+        m.querySelector(".sub").textContent = (ev.trend || "") + " · Google Trends";
+      }
+      if (ev.actor === "market_context") {
+        const m = $("mMarket"); m.classList.remove("pending");
+        m.querySelector(".val").textContent = (ev.text || "").split(";")[0].replace("market ", "");
+        m.querySelector(".sub").textContent = "WTP " + ((ev.text||"").split("WTP ")[1] || "");
+      }
+      if (ev.actor === "project_margin") {
+        const m = $("mMargin"); m.classList.remove("pending");
+        m.querySelector(".val").textContent = "€" + Math.round((ev.projected_contribution_eur||0)/1e6*10)/10 + "M";
+        m.querySelector(".sub").textContent = "6 SKUs · DataCo";
+      }
     }
 
-    function appendTrace(ev) {
-      const line = document.createElement("div");
-      let cls = "";
-      if (ev.kind === "retrieval") cls = "retrieval";
-      if (ev.status === "blocked") cls = "blocked";
-      line.className = cls;
-      const hop = ev.retrieval ? ` [#${ev.retrieval}]` : "";
-      line.innerHTML = `<span class="actor">${ev.actor}</span> · ${ev.kind}${hop} · ${ev.text || ev.claim_id || ""}`;
-      traceEl.appendChild(line);
-      traceEl.scrollTop = traceEl.scrollHeight;
+    const TOOL_LABELS = {
+      forecast_demand: "forecast demand", market_context: "size market",
+      project_line_margin: "project margin", project_margin: "project margin",
+      search_regulations: "search regulations", lookup_supplier_cert: "pull supplier cert",
+      verify_recycled_content: "verify recycled %", compute_risk_exposure: "compute fine exposure",
+      submit_claim_verdict: "record verdict", finalize_determination: "finalize decision",
+    };
+
+    function handle(ev) {
+      rawlog.textContent += `${ev.kind} · ${ev.actor} · ${ev.text || ev.claim_id || ""}\n`;
+      rawlog.scrollTop = rawlog.scrollHeight;
+
+      switch (ev.kind) {
+        case "session": sid = ev.sid; break;
+        case "plan":
+          act("call", "🧩", `Planned review · <b>${(ev.claims||[]).length} claims</b> × regulations`);
+          showThinking(); now("agent is reasoning about the line…");
+          break;
+        case "gate_auto": act("gate", "✓", ev.text); break;
+        case "agent":
+          clearThinking();
+          if (ev.text && ev.text.trim()) addMsg("agent", ev.text.trim());
+          now("agent is working…");
+          break;
+        case "tool_call": {
+          const lbl = TOOL_LABELS[ev.tool] || ev.tool;
+          act("call", "⚙", `Kimi calls <code>${ev.tool}</code>`);
+          now(`${lbl}…`);
+          break;
+        }
+        case "tool":
+          fillCommercial(ev);
+          if (ev.actor === "verify_recycled_content" && ev.result) {
+            const r = ev.result;
+            act("tool", "🧮", `verify recycled % → claimed <b>${r.claimed_pct}%</b> vs certified <b>${r.verified_pct}%</b> ${r.passes ? "✓" : "✕ gap"}`);
+          } else if (ev.actor === "compute_risk_exposure") {
+            act("tool", "🧮", `fine exposure · <b>${ev.text.split("· ")[1]||ev.text}</b>`);
+          } else {
+            act("tool", "✓", `<b>${TOOL_LABELS[ev.actor]||ev.actor}</b> · ${ev.text||""}`);
+          }
+          break;
+        case "retrieval": {
+          const hop = ev.retrieval === 2 ? "cert hop #2" : "reg hop #1";
+          const src = ev.live ? "Vultr Turnkey RAG" : (ev.source || "local corpus");
+          act("hop", "📄", `Retrieval <b>#${ev.retrieval}</b> · ${ev.retrieval===2?"supplier certificate":"regulation"} · <span style="color:var(--muted)">${src}</span>`);
+          const el = claimsEl.querySelector(`[data-id="${ev.claim_id}"]`);
+          if (el && !el.classList.contains("substantiated") && !el.classList.contains("blocked")) setClaim(ev.claim_id, "checking");
+          now(`retrieving ${ev.retrieval===2?"supplier certificate (multi-hop)":"regulation"}…`);
+          break;
+        }
+        case "claim":
+          if (ev.status && ev.status !== "checking") {
+            const hop = ev.status === "blocked" ? "regulation" : "citation";
+            setClaim(ev.claim_id, ev.status, ev.citation, ev.remediation, hop);
+            act(ev.status==="blocked"?"gate":"tool", ev.status==="blocked"?"⛔":"✓",
+              `<b>${ev.claim_id}</b> "${(ev.text||"").slice(0,32)}" → <b style="color:${ev.status==='blocked'?'var(--red)':'var(--green)'}">${ev.status}</b>`);
+          } else if (ev.status === "checking") {
+            setClaim(ev.claim_id, "checking");
+          }
+          break;
+        case "await_human":
+          clearThinking(); now("awaiting your sign-off");
+          act("gate", "⏸", `<b>Human gate</b> · ${ev.prompt}`);
+          $("gateQ").textContent = ev.prompt;
+          $("gateWhy").textContent = "The agent has adjudicated all claims and is ready to file — your desk signs off before it becomes a determination of record.";
+          gate.classList.add("show");
+          gate.scrollIntoView({ behavior: "smooth", block: "center" });
+          break;
+        case "human_reply": act("gate", "🙋", `Launch owner: <b>${ev.text}</b>`); break;
+        case "escalation": act("gate", "⚠", ev.text); break;
+        case "synthesis":
+          memoData = ev;
+          $("kCited").textContent = (ev.cited_pct ?? 100) + "%";
+          break;
+        case "metric":
+          if (ev.cited_pct != null) $("kCited").textContent = ev.cited_pct + "%";
+          break;
+        case "decision":
+          act("done", "★", userHeld ? `Placed on hold · <b>not filed</b>` : `Decision filed · <b>${ev.text}</b>`);
+          renderMemo(memoData || { recommendation: ev.text });
+          now("");
+          break;
+        case "error": addMsg("sys", "Error: " + ev.text); break;
+      }
+    }
+
+    function renderMemo(ev) {
+      const held = userHeld;
+      $("memo").classList.add("show");
+      const rec = held ? "ON HOLD — NOT FILED" : (ev.recommendation || "—");
+      const recEl = $("memoRec");
+      recEl.textContent = rec;
+      recEl.className = "rec " + (held ? "hold" : "green");
+      $("memoSum").textContent = held
+        ? "You placed the line on hold. The 2 blocked claims must be corrected before re-review."
+        : (ev.summary || "");
+      $("memoConf").textContent = ev.confidence ?? "—";
+      $("memoExp").textContent = "€" + Math.round((ev.max_exposure_eur||0)/1e6) + "M";
+      $("memoCleared").textContent = (ev.cleared ?? cleared) + "/" + (ev.total_claims ?? 6);
+      $("memoCited").textContent = (ev.cited_pct ?? 100) + "%";
+      $("kCited").textContent = (ev.cited_pct ?? 100) + "%";
+      $("memo").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function approve(decision) {
+      gate.classList.remove("show");
+      userHeld = (decision === "hold");
+      if (sid) fetch(`/api/approve?sid=${sid}&decision=${decision}`).catch(()=>{});
+    }
+    $("gateApprove").onclick = () => approve("approve");
+    $("gateHold").onclick = () => approve("hold");
+
+    function setStatus(text, live) {
+      $("statusText").textContent = text;
+      $("statusPill").classList.toggle("live", !!live);
     }
 
     runBtn.onclick = () => {
-      runBtn.disabled = true;
-      traceEl.innerHTML = "";
-      commercialEl.textContent = "Running agent…";
-      detEl.className = "";
-      detEl.innerHTML = "";
-      initClaims();
-      const es = new EventSource("/api/run?delay=0.4");
-      es.onmessage = (msg) => {
-        const ev = JSON.parse(msg.data);
-        appendTrace(ev);
-        if (ev.kind === "tool" && ev.actor === "forecast_demand") {
-          commercialEl.innerHTML = `<strong>Demand index ${ev.demand_index}</strong> (${ev.trend}) · real Google Trends<br>`;
-        }
-        if (ev.kind === "tool" && ev.actor === "market_context") {
-          commercialEl.innerHTML += ev.text + "<br>";
-        }
-        if (ev.kind === "tool" && ev.actor === "project_margin") {
-          commercialEl.innerHTML += `Line contribution <strong>€${(ev.projected_contribution_eur||0).toLocaleString()}</strong><br>`;
-        }
-        if (ev.kind === "claim" && ev.claim_id) {
-          const st = ev.status || "checking";
-          setClaim(ev.claim_id, st, ev.remediation?.slice(0, 50) || "", ev.citation || "");
-        }
-        if (ev.kind === "synthesis") {
-          detEl.className = "visible";
-          detEl.innerHTML = `<strong>${ev.recommendation}</strong><p>${ev.summary}</p>
-            <p style="font-size:0.8rem;color:var(--muted)">Confidence ${ev.confidence} · Net upside €${(ev.net_upside_eur||0).toLocaleString()}</p>`;
-          document.getElementById("mCited").textContent = "100%";
-          document.getElementById("mExposure").textContent = "€" + (ev.max_exposure_eur/1e6).toFixed(0) + "M";
-          document.getElementById("mConf").textContent = ev.confidence;
-        }
-        if (ev.kind === "metric") {
-          document.getElementById("mCited").textContent = ev.cited_pct + "%";
-          if (ev.net_upside_eur) commercialEl.innerHTML += `<br>Net upside €${ev.net_upside_eur.toLocaleString()} (demand-adjusted)`;
-        }
-      };
-      es.addEventListener("done", () => { es.close(); runBtn.disabled = false; });
-      es.onerror = () => { es.close(); runBtn.disabled = false; };
+      runBtn.disabled = true; reset();
+      setStatus("Agent running", true);
+      addMsg("sys", "Briefing GreenLight: review the Élan Studio AW26 line — size the commercial upside, then check all 6 marketing claims against EU Directive 2024/825 and the supplier evidence.");
+      showThinking();
+      const es = new EventSource("/api/run?delay=0.3");
+      es.onmessage = (m) => { try { handle(JSON.parse(m.data)); } catch(e){} };
+      es.addEventListener("done", () => { es.close(); runBtn.disabled = false; clearThinking(); setStatus("Review complete", false); now(""); });
+      es.onerror = () => { es.close(); runBtn.disabled = false; clearThinking(); setStatus("Disconnected", false); };
     };
   </script>
 </body>
