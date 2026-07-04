@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+
+# Runtime / generated
+data/events.jsonl
+*.log
+
+# Recordings / large media (keep committed assets in frontend/)
+recordings/
+*.mov
+*.mp4
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Internal / non-committable (strategy, research working notes, anything referencing confidentials)
+internal_docs/
