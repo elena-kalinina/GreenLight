@@ -45,6 +45,8 @@ class EventStream:
             "decision": "✓",
             "metric": "📈",
             "synthesis": "📋",
+            "agent": "🤖",
+            "tool_call": "⚙",
             "error": "✗",
         }.get(ev["kind"], "·")
         detail = ev.get("text") or ev.get("summary") or ev.get("claim_id") or ""

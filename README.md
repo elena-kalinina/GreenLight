@@ -92,9 +92,16 @@ python3 scripts/smoke_data.py       # data + retrieval integrity (17 checks)
 python3 scripts/seed_rag.py         # (once) seed Vultr Turnkey RAG collections
 ```
 
-Runs **fully offline** with local retrieval over the same corpus (no keys needed). With `INFERENCE_API_KEY` in `.env`, live Vultr inference + RAG are available (`GREENLIGHT_LIVE_RAG=1` for live collections; off by default for demo speed).
+Runs **fully offline** with local retrieval over the same corpus (no keys needed). With `INFERENCE_API_KEY` in `.env`, live Vultr inference + RAG are available:
 
-Deployed demo (Vultr Compute): <!-- TODO URL -->
+```bash
+GREENLIGHT_LIVE_RAG=1 python3 scripts/live_run.py   # ~60–90s, live Turnkey RAG
+GREENLIGHT_LIVE_RAG=1 GREENLIGHT_LIVE_LLM=1 python3 serve.py
+```
+
+**Deploy on Vultr Compute:** [`docs/DEPLOY.md`](docs/DEPLOY.md) — `python3 scripts/deploy_vultr.py` (requires Account API IP allowlist).
+
+Deployed demo (Vultr Compute): <!-- TODO URL after deploy -->
 
 ---
 
@@ -122,4 +129,4 @@ Architected and built **solo** at RAISE 2026 by **[NAME]** (team ShipHappens). C
 
 ## Status
 
-**Demo-ready:** engine + UI + real data staged; smoke tests green (`scripts/smoke_data.py`, `scripts/smoke_vultr.py`). Backup video + deploy pending.
+**Demo-ready:** engine + UI + real data staged; live Vultr RAG verified (`scripts/live_run.py` ~69s). Deploy script + manual bootstrap ready ([`docs/DEPLOY.md`](docs/DEPLOY.md)). UI revamp + backup video pending.

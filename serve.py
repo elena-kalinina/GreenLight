@@ -17,6 +17,11 @@ from urllib.parse import parse_qs, urlparse
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
+from greenlight.config import load_env  # noqa: E402
+
+for _k, _v in load_env().items():
+    os.environ.setdefault(_k, _v)
+
 from greenlight.run import run  # noqa: E402
 
 _DONE = object()
@@ -76,8 +81,17 @@ class Handler(SimpleHTTPRequestHandler):
 
 def main():
     port = int(os.getenv("PORT", "8000"))
+    live_rag = os.getenv("GREENLIGHT_LIVE_RAG", "0") == "1"
+    live_llm = os.getenv("GREENLIGHT_LIVE_LLM", "0") == "1"
+    if live_llm:
+        mode = "Kimi agent + Vultr RAG"
+    elif live_rag:
+        mode = "Vultr RAG (deterministic orchestration)"
+    else:
+        mode = "local fallback"
     url = f"http://localhost:{port}/frontend/index.html"
     print("GreenLight — canvas + live agent trace")
+    print(f"  mode:  {mode} (RAG={'on' if live_rag else 'off'}, LLM={'on' if live_llm else 'off'})")
     print(f"  open:  {url}")
     print("  click ▶ Run live on the page.")
     print("  Ctrl-C to stop.")

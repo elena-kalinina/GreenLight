@@ -10,7 +10,7 @@ def chat(messages, *, model=None, max_tokens=512, tools=None):
     """Return assistant message dict {role, content, tool_calls?}. Uses fallback if no key."""
     model = model or config.MODEL_BRAIN
     key = config.inference_key()
-    if not key or not config.USE_LIVE_LLM:
+    if not key or not config.use_live_llm():
         return _fallback(messages, model)
     payload = {"model": model, "messages": messages, "max_tokens": max_tokens}
     if tools:

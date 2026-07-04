@@ -1,5 +1,5 @@
-"""Coordinator — plan → commercial tools → per-claim checks → determination."""
-from greenlight.agents import claim_checker, determination, planner
+"""Coordinator — agent (Kimi + tools) or deterministic fallback."""
+from greenlight.agents import agent, claim_checker, determination, planner
 from greenlight.engine import policy
 from greenlight.engine.ledger import ClaimCheck, ComplianceLedger
 from greenlight.tools import forecast_demand, market_context, project_margin
@@ -13,6 +13,14 @@ class Coordinator:
     def run(self):
         ev = self.events
         line, plan_claims = planner.propose_plan(ev)
+
+        result = agent.run_or_fallback(line, plan_claims, ev, self.human)
+        if result is not None:
+            return result
+
+        return self._run_deterministic(line, plan_claims, ev)
+
+    def _run_deterministic(self, line, plan_claims, ev):
 
         ev.emit("task", "coordinator",
                 text=f"Review {line['brand']} {line['season']} line for launch")
