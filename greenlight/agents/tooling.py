@@ -318,6 +318,29 @@ def _submit_verdict(ctx: ToolContext, args: dict) -> dict:
 def _finalize(ctx: ToolContext, args: dict) -> dict:
     ledger = ctx.ledger
 
+    commercial_missing = [
+        tool
+        for tool, key in (
+            ("forecast_demand", "demand_index"),
+            ("market_context", "wtp_premium_pct"),
+            ("project_line_margin", "projected_contribution_eur"),
+        )
+        if not ledger.commercial.get(key)
+    ]
+    if commercial_missing:
+        ctx.events.emit(
+            "agent",
+            "coordinator",
+            text=f"Blocked finalize — commercial analysis incomplete: {', '.join(commercial_missing)}",
+        )
+        return {
+            "error": (
+                "Cannot finalize — the commercial upside must be sized first. "
+                f"Call these tools before finalize_determination: {', '.join(commercial_missing)}."
+            ),
+            "pending_tools": commercial_missing,
+        }
+
     adjudicated = {c.claim_id for c in ledger.claims}
     expected = {c["claim_id"] for c in ctx.plan_claims}
     missing = sorted(expected - adjudicated)

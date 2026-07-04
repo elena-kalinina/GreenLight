@@ -128,7 +128,6 @@ def _backfill_commercial(ctx: ToolContext):
     ledger = ctx.ledger
     if ledger.commercial.get("projected_contribution_eur"):
         return
-    ctx.events.emit("agent", "coordinator", text="Backfilling commercial tools the agent skipped")
     execute("forecast_demand", {"category": "Outerwear"}, ctx)
     execute("market_context", {}, ctx)
     execute("project_line_margin", {}, ctx)
