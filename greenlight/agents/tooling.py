@@ -317,6 +317,25 @@ def _submit_verdict(ctx: ToolContext, args: dict) -> dict:
 
 def _finalize(ctx: ToolContext, args: dict) -> dict:
     ledger = ctx.ledger
+
+    adjudicated = {c.claim_id for c in ledger.claims}
+    expected = {c["claim_id"] for c in ctx.plan_claims}
+    missing = sorted(expected - adjudicated)
+    if missing:
+        ctx.events.emit(
+            "agent",
+            "coordinator",
+            text=f"Blocked finalize — {len(missing)} claim(s) still need a verdict: {', '.join(missing)}",
+        )
+        return {
+            "error": (
+                f"Cannot finalize — {len(missing)} claim(s) still need a verdict: "
+                f"{', '.join(missing)}. Call search_regulations, then submit_claim_verdict "
+                "for EACH remaining claim before finalize_determination."
+            ),
+            "pending_claims": missing,
+        }
+
     blocked = len(ledger.blocked)
     cleared = len(ledger.cleared)
     upside = ledger.commercial.get("projected_contribution_eur", 0)

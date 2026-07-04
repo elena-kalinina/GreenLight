@@ -23,6 +23,8 @@ WORKFLOW — follow in order:
 4. Call finalize_determination with recommendation and summary.
 
 RULES:
+- You MUST submit_claim_verdict for ALL 6 claims (C1–C6) before finalize_determination.
+  Do not finalize early — finalize will be rejected while any claim lacks a verdict.
 - Generic environmental claims ("eco-friendly", "green", "sustainable") → BLOCKED under ECGT Annex I 4a.
 - Recycled % claims: if verify_recycled_content.passes is false, BLOCK and cite the TC gap.
 - Named certification schemes (GOTS, OEKO-TEX) with valid supplier cert → substantiated.
