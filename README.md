@@ -66,7 +66,7 @@ The loop (`greenlight/agents/agent.py`):
 
 A **human gate** then pauses the agent — the launch owner clicks **Approve & file** (or **Hold**) before the determination becomes a record. Every tool call, retrieval hop, and verdict streams live to the UI over SSE.
 
-> A deterministic fallback runs the *same* tools without the LLM (`GREENLIGHT_LIVE_LLM=0`) so the repo clones-and-runs with no keys and the demo never hard-stops.
+> A deterministic fallback can runs the *same* tools without the LLM (`GREENLIGHT_LIVE_LLM=0`) so the repo clones-and-runs with no keys and the demo never hard-stops.
 
 ### Models — right model per job (Vultr Serverless Inference)
 
