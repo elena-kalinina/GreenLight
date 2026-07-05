@@ -172,7 +172,7 @@ Full provenance table: [`data/README.md`](data/README.md).
 
 ## Author
 
-Architected and built **solo** at RAISE 2026 by **[NAME]** (team ShipHappens). Coordination engine written fresh during the event; document-grounding via Vultr Turnkey RAG; commercial layer on real cited public data.
+Architected and built **solo** at RAISE 2026 as team ShipHappens. Coordination engine written fresh during the event; document-grounding via Vultr Turnkey RAG; commercial layer on real cited public data.
 
 ---
 
