@@ -60,7 +60,8 @@ The loop (`greenlight/agents/agent.py`):
 2. It calls the **commercial tools** — `forecast_demand`, `market_context`, `project_line_margin`.
 3. For **each claim** it calls `search_regulations` (**retrieval #1**, Turnkey RAG). If a recycled-content claim isn't yet substantiated, it goes back for `lookup_supplier_cert` (**retrieval #2**) and runs `verify_recycled_content`.
 4. It submits a verdict per claim via `submit_claim_verdict` — a **grounding guard** rejects any `substantiated` verdict that lacks a document citation (this is what makes "0 hallucinated compliance" true, not aspirational).
-5. It calls `compute_risk_exposure`, then `finalize_determination`.
+5. It calls **`discover_claim_opportunities`** — scans **real Google Trends** ethical keywords (`cruelty free fashion`, `vegan fashion`) against line materials the brand is *not yet claiming*. For each rising opportunity (e.g. RDS down on the puffer, RWS wool on the sweater), Kimi runs the same regulation + supplier-cert checks and submits `submit_opportunity_verdict` — recommending **ADD TO LAUNCH** only when substantiated.
+6. It calls `compute_risk_exposure`, then `finalize_determination` (including recommended claim additions and projected uplift).
 
 A **human gate** then pauses the agent — the launch owner clicks **Approve & file** (or **Hold**) before the determination becomes a record. Every tool call, retrieval hop, and verdict streams live to the UI over SSE.
 
@@ -85,9 +86,9 @@ Model IDs verified via `GET /v1/models` on 2026-07-04 (`scripts/smoke_vultr.py`,
 | **Agent** (not retrieve-then-answer) | **Kimi-K2.6 native tool-calling loop** + human gate + live trace | `greenlight/agents/agent.py` |
 | **Plans** | Kimi states its plan; commercial assessment + claims × regs | `greenlight/agents/agent.py`, `planner.py` |
 | **Aggregates across data types** | Regulations + certs + Trends + margins + market constants | `greenlight/agents/tooling.py` + `data/` |
-| **Predicts** | `forecast_demand()` → next-season demand index | `greenlight/tools/__init__.py` |
+| **Predicts / discovers upside** | `forecast_demand()` + **`discover_claim_opportunities()`** → rising ethical demand matched to substantiatable line materials | `greenlight/tools/__init__.py` |
 | **Retrieves more than once** | Reg lookup (#1), then **supplier cert** (#2) on gap | `greenlight/sources/vultr_rag.py` |
-| **Calls tools** | Agent chooses: `forecast_demand`, `market_context`, `project_line_margin`, `search_regulations`, `lookup_supplier_cert`, `verify_recycled_content`, `compute_risk_exposure`, `submit_claim_verdict`, `finalize_determination` | `greenlight/agents/tooling.py` |
+| **Calls tools** | Agent chooses: commercial tools, claim checks, **`discover_claim_opportunities`**, **`submit_opportunity_verdict`**, risk + finalize | `greenlight/agents/tooling.py` |
 | **Makes decisions** | Per-claim verdict (grounding-guarded) + **launch recommendation** | `greenlight/agents/agent.py`, `claim_checker.py` |
 | **Human-in-the-loop** | Agent pauses for launch-owner sign-off before filing | `serve.py` (`WebHuman` + `/api/approve`) |
 | **Usable enterprise outcome** | Cited line-launch determination | `greenlight/agents/determination.py` |
@@ -138,7 +139,7 @@ GreenLight runs on **real public data wherever the decision depends on facts.** 
 
 **Regulation corpus — EU Directive 2024/825 (ECGT).** Verbatim excerpts from [EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024L0825) — the Annex I ban on generic environmental claims and the substantiation duty. Seeded into the `greenlight-regulations` Vultr Turnkey RAG collection; this is **retrieval #1** and the source of every on-screen citation. (`data/regulations/ecgt_2024_825.md`)
 
-**Demand signal — Google Trends.** 261 weekly observations (2021–2026) for three queries: *sustainable fashion*, *recycled polyester*, *organic cotton*. `forecast_demand()` derives the next-season demand index from the recent-vs-prior 12-week averages. (`data/demand/trends_sustainability.csv`)
+**Demand signal — Google Trends.** 261 weekly observations (2021–2026) for sustainability queries (*sustainable fashion*, *recycled polyester*, *organic cotton*) plus ethical queries (*cruelty free fashion*, *vegan fashion*, *responsible wool*). `forecast_demand()` and `discover_claim_opportunities()` derive demand indices from recent-vs-prior 12-week averages. Re-fetch: `python3 scripts/fetch_data.py`. (`data/demand/trends_sustainability.csv`, `data/demand/trends_ethical.csv`)
 
 **Margins — DataCo Smart Supply Chain.** Real apparel profit ratios distilled from the DataCo Supply Chain dataset into per-category benchmarks used by `project_margin()` for line-contribution economics. The raw multi-hundred-MB source is gitignored; the derived benchmark CSV is committed. (`data/margins/datac_apparel_benchmarks.csv`)
 
@@ -146,7 +147,7 @@ GreenLight runs on **real public data wherever the decision depends on facts.** 
 
 **Enforcement context.** Shein **€40M** (France DGCCRF, Jul 2025) for unsubstantiated environmental claims; the **≤4% of annual turnover** penalty basis (Omnibus 2019/2161). Real and cited. (`docs/COMPLIANCE_BASIS.md`)
 
-**Product line — synthetic scenario.** A 6-SKU AW26 line whose *attributes* (categories, fibre compositions, price bands) are modeled on the open Livostyle catalog; the *brand* and its *marketing claims* are authored for the scenario. (`data/line/aw26_line.json`)
+**Product line — synthetic scenario.** A 6-SKU AW26 line whose *attributes* (categories, fibre compositions, price bands) are modeled on the open Livostyle catalog; the *brand* and its *marketing claims* are authored for the scenario. GL-01 includes RDS-certified down fill and GL-02 includes RWS merino wool — materials the agent can discover as **new substantiatable claims** when ethical demand is rising. (`data/line/aw26_line.json`)
 
 **Supplier certificates — synthetic, structurally authentic.** GRS/RCS **Scope** + **Transaction** Certificates following the Textile Exchange ASR-204/205 structure. The demo's key realism: the Scope Certificate is valid, but the Transaction Certificate for the shipment covers only **40%** vs the claimed **70%** — which is exactly how real recycled-content claims fail. Seeded into the `greenlight-supplier-certs` collection; this is **retrieval #2**. (`data/certs/`)
 

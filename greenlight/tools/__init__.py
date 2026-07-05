@@ -54,15 +54,6 @@ def project_margin(sku_row):
     }
 
 
-def compute_risk_exposure(turnover_eur, blocked_count):
-    cap = round(turnover_eur * 0.04, 0)
-    return {
-        "max_exposure_eur": cap,
-        "blocked_claims": blocked_count,
-        "basis": "UCPD/Omnibus ≤4% turnover for widespread infringement",
-    }
-
-
 def verify_recycled_content(claimed_pct, tc_payload):
     """Recompute claimed % vs TC — the calc tool for the wow."""
     import json as _json
@@ -83,4 +74,80 @@ def verify_recycled_content(claimed_pct, tc_payload):
         "verified_pct": covered,
         "passes": covered >= claimed_pct,
         "gap": claimed_pct - covered if claimed_pct > covered else 0,
+    }
+
+
+def _trend_index(path, column):
+    if not path.exists():
+        return {"demand_index": 1.0, "trend": "stable", "source": "stub"}
+    rows = list(csv.DictReader(open(path)))
+    if not rows or column not in rows[0]:
+        return {"demand_index": 1.0, "trend": "stable", "source": "stub"}
+    recent = [float(r[column]) for r in rows[-12:] if r.get(column)]
+    prior = [float(r[column]) for r in rows[-24:-12] if r.get(column)]
+    avg_r = sum(recent) / len(recent) if recent else 1
+    avg_p = sum(prior) / len(prior) if prior else avg_r
+    idx = round(avg_r / avg_p, 2) if avg_p else 1.0
+    return {
+        "demand_index": idx,
+        "trend": "rising" if idx > 1.05 else "stable",
+        "source": "Google Trends (real)",
+    }
+
+
+def discover_claim_opportunities(line, declared_claims):
+    """Scan ethical demand trends and match unclaimed line materials to substantiatable claims."""
+    mapping_path = config.DATA / "demand" / "claim_opportunities.json"
+    trends_path = config.DATA / "demand" / "trends_ethical.csv"
+    if not mapping_path.exists():
+        return {"opportunities": [], "source": "none"}
+    mappings = json.loads(mapping_path.read_text()).get("mappings", [])
+    declared_attrs = set()
+    declared_skus_claimed = set()
+    for c in declared_claims or []:
+        meta = c.get("meta") or c
+        if meta.get("attribute"):
+            declared_attrs.add(meta["attribute"])
+        if c.get("text"):
+            declared_skus_claimed.add((c.get("sku"), c.get("text", "").lower()))
+
+    sku_by_id = {s["sku"]: s for s in line.get("skus", [])}
+    out = []
+    for m in mappings:
+        sku_row = sku_by_id.get(m["sku"])
+        if not sku_row:
+            continue
+        attrs = set(sku_row.get("attributes") or [])
+        if m["material_attribute"] not in attrs:
+            continue
+        if m["material_attribute"] in declared_attrs:
+            continue
+        if (m["sku"], m["claim_text"].lower()) in declared_skus_claimed:
+            continue
+        trend = _trend_index(trends_path, m["trend_column"])
+        if trend["demand_index"] < 1.02:
+            continue
+        out.append({
+            "opportunity_id": m["opportunity_id"],
+            "sku": m["sku"],
+            "sku_name": sku_row.get("name"),
+            "claim_text": m["claim_text"],
+            "claim_type": m["claim_type"],
+            "scheme": m.get("scheme"),
+            "evidence_attribute": m["evidence_attribute"],
+            "trend_keyword": m["trend_keyword"],
+            "demand_index": trend["demand_index"],
+            "trend": trend["trend"],
+            "uplift_pct": m.get("uplift_pct", 5),
+            "source": trend["source"],
+        })
+    return {"opportunities": out, "count": len(out), "source": "Google Trends + line attributes"}
+
+
+def compute_risk_exposure(turnover_eur, blocked_count):
+    cap = round(turnover_eur * 0.04, 0)
+    return {
+        "max_exposure_eur": cap,
+        "blocked_claims": blocked_count,
+        "basis": "UCPD/Omnibus ≤4% turnover for widespread infringement",
     }

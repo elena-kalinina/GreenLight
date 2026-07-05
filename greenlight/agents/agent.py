@@ -19,16 +19,23 @@ WORKFLOW — follow in order:
    a. Call search_regulations (retrieval #1) before any verdict.
    b. If recycled_content and evidence is needed: lookup_supplier_cert (retrieval #2), then verify_recycled_content.
    c. Call submit_claim_verdict with status, citation, and remediation if blocked.
-3. Call compute_risk_exposure with the number of blocked claims.
-4. Call finalize_determination with recommendation and summary.
+3. Call discover_claim_opportunities — scan rising ethical demand for claims the line could add but is not yet making.
+   For EACH returned opportunity (e.g. O1, O2):
+   a. Call search_regulations with opportunity_id (not claim_id).
+   b. Call lookup_supplier_cert with opportunity_id, sku, and evidence_attribute.
+   c. Call submit_opportunity_verdict — recommend ADD TO LAUNCH only if substantiated with valid cert.
+4. Call compute_risk_exposure with the number of blocked claims.
+5. Call finalize_determination with recommendation and summary (include recommended claim additions).
 
 RULES:
-- You MUST submit_claim_verdict for ALL 6 claims (C1–C6) before finalize_determination.
-  Do not finalize early — finalize will be rejected while any claim lacks a verdict.
+- You MUST submit_claim_verdict for ALL 6 claims (C1–C6) before discovery.
+- You MUST call discover_claim_opportunities and vet every returned opportunity before finalize.
 - Generic environmental claims ("eco-friendly", "green", "sustainable") → BLOCKED under ECGT Annex I 4a.
 - Recycled % claims: if verify_recycled_content.passes is false, BLOCK and cite the TC gap.
-- Named certification schemes (GOTS, OEKO-TEX) with valid supplier cert → substantiated.
+- Named certification schemes (GOTS, OEKO-TEX, RDS, RWS) with valid supplier cert → substantiated.
+- Discovered opportunities: only recommend if RDS/RWS (or other named scheme) TC substantiates the shipment.
 - Recommendation: GREEN-LIGHT WITH CONDITIONS if any claims blocked, else GREEN-LIGHT.
+- In finalize summary, mention any substantiated opportunities as recommended additions to launch marketing.
 """
 
 
@@ -60,11 +67,19 @@ def run(line, plan_claims, events, human):
         for c in plan_claims
     ]
 
+    line_attrs = [
+        {"sku": s["sku"], "name": s["name"], "attributes": s.get("attributes", []), "composition": s.get("composition")}
+        for s in line["skus"]
+    ]
+
     user_msg = (
         f"Review line for {line['brand']} {line['season']}. "
         f"Annual turnover €{line['annual_turnover_eur']:,.0f}. "
         f"Marketing claims:\n{json.dumps(claims_brief, indent=2)}\n\n"
-        "Use tools for every step. Adjudicate all 6 claims, then finalize."
+        f"Line materials (for discovery — some ethical claims may be possible but not yet declared):\n"
+        f"{json.dumps(line_attrs, indent=2)}\n\n"
+        "Use tools for every step. Adjudicate all 6 claims, discover rising-demand opportunities, "
+        "vet each opportunity, then finalize."
     )
     messages = [
         {"role": "system", "content": SYSTEM},
@@ -83,7 +98,7 @@ def run(line, plan_claims, events, human):
             messages.append(msg)
             messages.append({
                 "role": "user",
-                "content": "Continue — use tools to adjudicate remaining claims and finalize_determination.",
+                "content": "Continue — use tools to adjudicate remaining claims, discover opportunities, and finalize_determination.",
             })
             continue
 

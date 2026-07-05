@@ -25,6 +25,7 @@ DATACO_URL = ("https://raw.githubusercontent.com/devkoustavdas/"
 DATACO_RAW = MARGINS / "DataCoSupplyChainDataset.csv"  # gitignored (large)
 APPAREL_KEEP = ("apparel", "clothing", "footwear", "accessories", "cleats")
 TREND_KEYWORDS = ["sustainable fashion", "recycled polyester", "organic cotton"]
+ETHICAL_TREND_KEYWORDS = ["cruelty free fashion", "responsible wool", "vegan fashion"]
 
 
 def fetch_dataco():
@@ -80,6 +81,22 @@ def fetch_trends():
     print(f"Wrote {out} ({df.shape[0]} weekly rows, {list(df.columns)})")
 
 
+def fetch_ethical_trends():
+    DEMAND.mkdir(parents=True, exist_ok=True)
+    try:
+        from pytrends_modern import TrendReq
+    except ImportError:
+        print("pytrends-modern not installed; skipping ethical trends.")
+        return
+    p = TrendReq(hl="en-US", tz=0)
+    p.build_payload(ETHICAL_TREND_KEYWORDS, timeframe="today 5-y", geo="")
+    df = p.interest_over_time()
+    out = DEMAND / "trends_ethical.csv"
+    df.to_csv(out)
+    print(f"Wrote {out} ({df.shape[0]} weekly rows, {list(df.columns)})")
+
+
 if __name__ == "__main__":
     fetch_dataco()
     fetch_trends()
+    fetch_ethical_trends()

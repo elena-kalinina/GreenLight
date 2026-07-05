@@ -41,6 +41,46 @@
       "status": "VALID",
       "verificationUrl": "https://certificates.textileexchange.org/tc/0629",
       "note": "Substantiates the 'GOTS-certified organic cotton' claim (C3): SC valid AND TC confirms 100% organic cotton for this shipment."
+    },
+    {
+      "tcNo": "0712",
+      "standard": "Responsible Down Standard (RDS 3.0)",
+      "seller": "Atlas Textile Mills Ltd (TE-10237845)",
+      "buyer": "\u00c9lan Studio",
+      "relatedScopeCertificate": "SC-RDS-2026-10237846",
+      "shipmentRef": "INV-ATL-2026-1201",
+      "linkedSku": "GL-01",
+      "products": [
+        {
+          "productName": "RDS-certified down fill \u2014 puffer insulation",
+          "netShippingWeightKg": 980,
+          "claimedMaterial": "RDS-certified down",
+          "certifiedRdsContentPct": 100
+        }
+      ],
+      "status": "VALID",
+      "verificationUrl": "https://certificates.textileexchange.org/tc/0712",
+      "note": "Substantiates a discovered RDS down claim for GL-01: SC valid AND TC confirms 100% RDS-certified down fill for this shipment."
+    },
+    {
+      "tcNo": "0844",
+      "standard": "Responsible Wool Standard (RWS 2.0)",
+      "seller": "Nova Knitworks GmbH (TE-88421017)",
+      "buyer": "\u00c9lan Studio",
+      "relatedScopeCertificate": "SC-RWS-2026-88421017",
+      "shipmentRef": "INV-NVA-2026-0412",
+      "linkedSku": "GL-02",
+      "products": [
+        {
+          "productName": "RWS merino wool yarn \u2014 knit sweater",
+          "netShippingWeightKg": 2100,
+          "claimedMaterial": "responsible merino wool",
+          "certifiedRwsContentPct": 85
+        }
+      ],
+      "status": "VALID",
+      "verificationUrl": "https://certificates.textileexchange.org/tc/0844",
+      "note": "Substantiates a discovered RWS wool claim for GL-02: SC valid AND TC confirms 85% RWS-certified merino wool for this shipment."
     }
   ]
 }

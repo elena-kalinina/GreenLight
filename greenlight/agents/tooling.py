@@ -3,10 +3,11 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from greenlight.engine.ledger import ClaimCheck, ComplianceLedger
+from greenlight.engine.ledger import ClaimCheck, ComplianceLedger, OpportunityRecommendation
 from greenlight.sources import vultr_rag
 from greenlight.tools import (
     compute_risk_exposure,
+    discover_claim_opportunities,
     forecast_demand,
     market_context,
     project_margin,
@@ -51,10 +52,11 @@ TOOL_SCHEMAS = [
                 "type": "object",
                 "properties": {
                     "claim_id": {"type": "string"},
+                    "opportunity_id": {"type": "string"},
                     "claim_text": {"type": "string"},
                     "claim_type": {"type": "string"},
                 },
-                "required": ["claim_id", "claim_text", "claim_type"],
+                "required": ["claim_text", "claim_type"],
             },
         },
     },
@@ -67,10 +69,11 @@ TOOL_SCHEMAS = [
                 "type": "object",
                 "properties": {
                     "claim_id": {"type": "string"},
+                    "opportunity_id": {"type": "string"},
                     "sku": {"type": "string"},
                     "attribute": {"type": "string"},
                 },
-                "required": ["claim_id", "sku"],
+                "required": ["sku"],
             },
         },
     },
@@ -123,6 +126,32 @@ TOOL_SCHEMAS = [
     {
         "type": "function",
         "function": {
+            "name": "discover_claim_opportunities",
+            "description": "Scan rising ethical demand (Google Trends) and match unclaimed line materials to substantiatable marketing claims the brand is not yet making.",
+            "parameters": {"type": "object", "properties": {}},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "submit_opportunity_verdict",
+            "description": "Record verdict for a discovered claim opportunity after regulation retrieval and supplier cert check.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "opportunity_id": {"type": "string"},
+                    "status": {"type": "string", "enum": ["substantiated", "needs-evidence", "rejected"]},
+                    "citation": {"type": "string"},
+                    "regulation": {"type": "string"},
+                    "remediation": {"type": "string"},
+                },
+                "required": ["opportunity_id", "status", "citation"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "finalize_determination",
             "description": "Submit final line-launch recommendation after all claims are adjudicated.",
             "parameters": {
@@ -145,6 +174,8 @@ class ToolContext:
     ledger: ComplianceLedger
     events: Any
     claim_trace: Dict[str, dict] = field(default_factory=dict)
+    discovered: List[dict] = field(default_factory=list)
+    discovery_called: bool = False
     finished: bool = False
 
     def claim_row(self, claim_id: str) -> Optional[dict]:
@@ -153,11 +184,25 @@ class ToolContext:
                 return c
         return None
 
+    def opportunity_row(self, opportunity_id: str) -> Optional[dict]:
+        for o in self.discovered:
+            if o.get("opportunity_id") == opportunity_id:
+                return o
+        return None
 
-def _trace(ctx: ToolContext, claim_id: str) -> dict:
-    if claim_id not in ctx.claim_trace:
-        ctx.claim_trace[claim_id] = {}
-    return ctx.claim_trace[claim_id]
+
+def _trace_key(args: dict) -> str:
+    if args.get("claim_id"):
+        return args["claim_id"]
+    if args.get("opportunity_id"):
+        return f"opp:{args['opportunity_id']}"
+    return ""
+
+
+def _trace(ctx: ToolContext, key: str) -> dict:
+    if key not in ctx.claim_trace:
+        ctx.claim_trace[key] = {}
+    return ctx.claim_trace[key]
 
 
 def execute(name: str, args: dict, ctx: ToolContext) -> dict:
@@ -199,13 +244,14 @@ def execute(name: str, args: dict, ctx: ToolContext) -> dict:
         return {"projected_contribution_eur": total}
 
     if name == "search_regulations":
-        cid = args["claim_id"]
+        key = _trace_key(args)
         reg = vultr_rag.search_regulations(args["claim_text"], args.get("claim_type", ""))
-        _trace(ctx, cid)["regulation"] = reg
+        _trace(ctx, key)["regulation"] = reg
         ev.emit(
             "retrieval",
             "ClaimChecker",
-            claim_id=cid,
+            claim_id=args.get("claim_id"),
+            opportunity_id=args.get("opportunity_id"),
             retrieval=1,
             text="regulation retrieval #1",
             source=reg.get("source"),
@@ -215,13 +261,14 @@ def execute(name: str, args: dict, ctx: ToolContext) -> dict:
         return reg
 
     if name == "lookup_supplier_cert":
-        cid = args["claim_id"]
+        key = _trace_key(args)
         cert = vultr_rag.lookup_supplier_cert(args["sku"], args.get("attribute"))
-        _trace(ctx, cid)["cert"] = cert
+        _trace(ctx, key)["cert"] = cert
         ev.emit(
             "retrieval",
             "ClaimChecker",
-            claim_id=cid,
+            claim_id=args.get("claim_id"),
+            opportunity_id=args.get("opportunity_id"),
             retrieval=2,
             text="supplier cert retrieval #2 (multi-hop)",
             citation=cert.get("citation"),
@@ -256,6 +303,46 @@ def execute(name: str, args: dict, ctx: ToolContext) -> dict:
 
     if name == "submit_claim_verdict":
         return _submit_verdict(ctx, args)
+
+    if name == "discover_claim_opportunities":
+        declared = [
+            {"sku": c["sku"], "text": c["text"], "meta": c.get("meta") or {}}
+            for c in ctx.plan_claims
+        ]
+        result = discover_claim_opportunities(line, declared)
+        ctx.discovery_called = True
+        ctx.discovered = result.get("opportunities") or []
+        if ctx.discovered:
+            ev.emit(
+                "agent",
+                "Kimi-K2.6",
+                text=(
+                    f"Found {len(ctx.discovered)} rising-demand claim opportunities the line could add: "
+                    + ", ".join(o["opportunity_id"] for o in ctx.discovered)
+                ),
+            )
+        for opp in ctx.discovered:
+            ev.emit(
+                "opportunity",
+                "ClaimDiscovery",
+                opportunity_id=opp["opportunity_id"],
+                sku=opp["sku"],
+                text=opp["claim_text"],
+                trend_keyword=opp["trend_keyword"],
+                demand_index=opp["demand_index"],
+                uplift_pct=opp.get("uplift_pct"),
+                status="candidate",
+            )
+        ev.emit(
+            "tool",
+            "discover_claim_opportunities",
+            text=f"{len(ctx.discovered)} opportunities · rising ethical demand × line materials",
+            **result,
+        )
+        return result
+
+    if name == "submit_opportunity_verdict":
+        return _submit_opportunity_verdict(ctx, args)
 
     if name == "finalize_determination":
         return _finalize(ctx, args)
@@ -315,6 +402,68 @@ def _submit_verdict(ctx: ToolContext, args: dict) -> dict:
     return {"ok": True, "claim_id": cid, "status": status}
 
 
+def _submit_opportunity_verdict(ctx: ToolContext, args: dict) -> dict:
+    oid = args["opportunity_id"]
+    row = ctx.opportunity_row(oid)
+    if not row:
+        return {"error": f"unknown opportunity_id {oid} — call discover_claim_opportunities first"}
+
+    status = args["status"]
+    citation = (args.get("citation") or "").strip()
+    trace = _trace(ctx, f"opp:{oid}")
+
+    if status == "substantiated" and not citation:
+        return {"error": "citation required — call search_regulations first"}
+
+    if "regulation" not in trace and status != "rejected":
+        return {"error": "call search_regulations with opportunity_id before submitting verdict"}
+
+    cert = trace.get("cert") or {}
+    tc = cert.get("transaction")
+    if status == "substantiated":
+        if not tc or tc.get("status") != "VALID" or tc.get("linkedSku") != row["sku"]:
+            status = "needs-evidence"
+            args["remediation"] = args.get("remediation") or "No valid Transaction Certificate on file for this shipment."
+        elif not cert.get("scope_valid"):
+            status = "needs-evidence"
+            args["remediation"] = args.get("remediation") or "Scope Certificate missing or expired."
+
+    rec = next((o for o in ctx.ledger.opportunities if o.opportunity_id == oid), None)
+    if not rec:
+        rec = OpportunityRecommendation(
+            opportunity_id=oid,
+            sku=row["sku"],
+            text=row["claim_text"],
+            claim_type=row["claim_type"],
+            trend_keyword=row.get("trend_keyword"),
+            demand_index=row.get("demand_index"),
+            uplift_pct=row.get("uplift_pct"),
+            meta=row,
+        )
+        ctx.ledger.opportunities.append(rec)
+
+    rec.status = status
+    rec.citation = citation
+    rec.regulation = args.get("regulation")
+    rec.remediation = args.get("remediation")
+
+    ctx.events.emit(
+        "opportunity",
+        "ClaimDiscovery",
+        opportunity_id=oid,
+        sku=row["sku"],
+        text=row["claim_text"],
+        trend_keyword=row.get("trend_keyword"),
+        demand_index=row.get("demand_index"),
+        uplift_pct=row.get("uplift_pct"),
+        status=status,
+        citation=citation,
+        remediation=rec.remediation,
+        recommend_add=(status == "substantiated"),
+    )
+    return {"ok": True, "opportunity_id": oid, "status": status}
+
+
 def _finalize(ctx: ToolContext, args: dict) -> dict:
     ledger = ctx.ledger
 
@@ -359,12 +508,50 @@ def _finalize(ctx: ToolContext, args: dict) -> dict:
             "pending_claims": missing,
         }
 
+    if not ctx.discovery_called:
+        ctx.events.emit(
+            "agent",
+            "coordinator",
+            text="Blocked finalize — call discover_claim_opportunities before finalize_determination",
+        )
+        return {
+            "error": (
+                "Cannot finalize — call discover_claim_opportunities after adjudicating claims, "
+                "then vet each returned opportunity (search_regulations, lookup_supplier_cert, "
+                "submit_opportunity_verdict) before finalize_determination."
+            ),
+        }
+
+    pending_opps = sorted(
+        o["opportunity_id"]
+        for o in ctx.discovered
+        if o["opportunity_id"] not in {x.opportunity_id for x in ledger.opportunities}
+    )
+    if pending_opps:
+        ctx.events.emit(
+            "agent",
+            "coordinator",
+            text=f"Blocked finalize — {len(pending_opps)} discovered opportunity(ies) still need a verdict: {', '.join(pending_opps)}",
+        )
+        return {
+            "error": (
+                f"Cannot finalize — vet discovered opportunities: {', '.join(pending_opps)}. "
+                "For each: search_regulations, lookup_supplier_cert, submit_opportunity_verdict."
+            ),
+            "pending_opportunities": pending_opps,
+        }
+
     blocked = len(ledger.blocked)
     cleared = len(ledger.cleared)
     upside = ledger.commercial.get("projected_contribution_eur", 0)
     demand_idx = ledger.commercial.get("demand_index", 1.0)
     positioning_uplift = round(upside * 0.12 * demand_idx, 0)
-    net_upside = round(upside + positioning_uplift, 0)
+    recommended = ledger.recommended_opportunities
+    opp_uplift = 0
+    for o in recommended:
+        pct = (o.uplift_pct or 5) / 100.0
+        opp_uplift += round(upside * pct * (o.demand_index or 1.0) / len(line["skus"]), 0)
+    net_upside = round(upside + positioning_uplift + opp_uplift, 0)
     risk = compute_risk_exposure(ledger.turnover_eur, blocked)
 
     det = {
@@ -376,7 +563,20 @@ def _finalize(ctx: ToolContext, args: dict) -> dict:
         "max_exposure_eur": risk["max_exposure_eur"],
         "projected_contribution_eur": upside,
         "positioning_uplift_eur": positioning_uplift,
+        "opportunity_uplift_eur": opp_uplift,
         "net_upside_eur": net_upside,
+        "recommended_opportunities": [
+            {
+                "opportunity_id": o.opportunity_id,
+                "sku": o.sku,
+                "text": o.text,
+                "trend_keyword": o.trend_keyword,
+                "demand_index": o.demand_index,
+                "uplift_pct": o.uplift_pct,
+                "citation": o.citation,
+            }
+            for o in recommended
+        ],
         "summary": args["summary"],
         "cited_pct": 100,
     }

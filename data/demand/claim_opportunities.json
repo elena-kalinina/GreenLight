@@ -1,0 +1,29 @@
+{
+  "_provenance": "Curated mapping from real Google Trends ethical keywords to line material attributes and substantiatable claim templates. Used by discover_claim_opportunities.",
+  "mappings": [
+    {
+      "opportunity_id": "O1",
+      "trend_keyword": "cruelty free fashion",
+      "trend_column": "cruelty free fashion",
+      "material_attribute": "rds_down_fill",
+      "sku": "GL-01",
+      "claim_text": "RDS-certified responsibly sourced down",
+      "claim_type": "certified_material",
+      "scheme": "RDS",
+      "evidence_attribute": "rds_down_fill",
+      "uplift_pct": 8
+    },
+    {
+      "opportunity_id": "O2",
+      "trend_keyword": "vegan / cruelty-free fashion",
+      "trend_column": "vegan fashion",
+      "material_attribute": "rws_wool",
+      "sku": "GL-02",
+      "claim_text": "RWS-certified responsible merino wool",
+      "claim_type": "certified_material",
+      "scheme": "RWS",
+      "evidence_attribute": "rws_wool",
+      "uplift_pct": 6
+    }
+  ]
+}

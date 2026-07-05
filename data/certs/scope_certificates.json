@@ -31,6 +31,36 @@
       ],
       "verificationUrl": "https://certificates.textileexchange.org/sc/TE-55810293",
       "note": "Confirms Verde is certified organic cotton across the relevant product categories."
+    },
+    {
+      "certNo": "SC-RDS-2026-10237846",
+      "standard": "Responsible Down Standard (RDS 3.0)",
+      "certifiedOrganizationTeId": "TE-10237845",
+      "certifiedOrganization": "Atlas Textile Mills Ltd",
+      "certificationBody": "Control Union Certifications",
+      "validFrom": "2026-01-15",
+      "validUntil": "2027-01-14",
+      "status": "VALID",
+      "scopeProducts": [
+        {"material": "RDS-certified down and feather", "productCategory": "outerwear fill", "processCategory": "processing, filling"}
+      ],
+      "verificationUrl": "https://certificates.textileexchange.org/sc/TE-10237845",
+      "note": "Confirms Atlas is qualified to supply RDS-certified down fill for outerwear."
+    },
+    {
+      "certNo": "SC-RWS-2026-88421017",
+      "standard": "Responsible Wool Standard (RWS 2.0)",
+      "certifiedOrganizationTeId": "TE-88421017",
+      "certifiedOrganization": "Nova Knitworks GmbH",
+      "certificationBody": "ICEA",
+      "validFrom": "2026-03-01",
+      "validUntil": "2027-02-28",
+      "status": "VALID",
+      "scopeProducts": [
+        {"material": "responsible merino wool", "productCategory": "knit sweaters, yarns", "processCategory": "spinning, knitting, finishing"}
+      ],
+      "verificationUrl": "https://certificates.textileexchange.org/sc/TE-88421017",
+      "note": "Confirms Nova is qualified to supply RWS-certified merino wool for knitwear."
     }
   ]
 }

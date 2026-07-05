@@ -18,11 +18,28 @@ class ClaimCheck:
 
 
 @dataclass
+class OpportunityRecommendation:
+    opportunity_id: str
+    sku: str
+    text: str
+    claim_type: str
+    status: str = "pending"  # pending | substantiated | needs-evidence | rejected
+    trend_keyword: Optional[str] = None
+    demand_index: Optional[float] = None
+    uplift_pct: Optional[float] = None
+    citation: Optional[str] = None
+    regulation: Optional[str] = None
+    remediation: Optional[str] = None
+    meta: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class ComplianceLedger:
     brand: str
     season: str
     turnover_eur: float
     claims: List[ClaimCheck] = field(default_factory=list)
+    opportunities: List[OpportunityRecommendation] = field(default_factory=list)
     commercial: Dict[str, Any] = field(default_factory=dict)
     determination: Optional[Dict[str, Any]] = None
 
@@ -33,6 +50,10 @@ class ComplianceLedger:
     @property
     def cleared(self):
         return [c for c in self.claims if c.status == "substantiated"]
+
+    @property
+    def recommended_opportunities(self):
+        return [o for o in self.opportunities if o.status == "substantiated"]
 
     @property
     def confidence(self):

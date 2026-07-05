@@ -138,6 +138,12 @@
     .claim.substantiated { border-color: #1e5c3e; }
     .claim.blocked { border-color: var(--red); background: #1c1216; }
     .claim.needs-evidence { border-color: #6b5a1e; }
+    .claim.opportunity { border-color: #2a3a5c; background: #121a28; }
+    .claim.opportunity.recommended { border-color: var(--accent); box-shadow: 0 0 0 1px #59c2ff33; }
+    .pill.candidate { background: #1a2438; color: var(--accent); }
+    .pill.recommended { background: #102a3a; color: var(--accent); }
+    .pill.rejected { background: #1b2735; color: var(--faint); }
+    .claim .trend { font-size: 0.66rem; color: var(--accent); margin-top: 0.15rem; }
     .claim .cite {
       margin-top: 0.5rem; font-size: 0.75rem; color: var(--amber); line-height: 1.45;
       border-left: 2px solid var(--amber); padding-left: 0.6rem;
@@ -166,6 +172,11 @@
     #memo .rec { font-size: 1.15rem; font-weight: 800; }
     #memo .rec.green { color: var(--green); } #memo .rec.hold { color: var(--amber); }
     #memo .sum { font-size: 0.86rem; color: var(--text); margin: 0.4rem 0 0.7rem; }
+    #memoOpps { display: none; margin: 0.6rem 0 0.8rem; padding: 0.65rem 0.75rem; border-radius: 10px; background: #0f1a28; border: 1px solid #2a4a6a; }
+    #memoOpps.show { display: block; }
+    #memoOpps h3 { margin: 0 0 0.45rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+    #memoOpps ul { margin: 0; padding-left: 1.1rem; font-size: 0.82rem; color: var(--text); }
+    #memoOpps li { margin: 0.25rem 0; }
     .memo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
     .memo-grid .mini .val { font-size: 1rem; }
 
@@ -256,6 +267,16 @@
         <div id="claims" style="margin-top:0.7rem;"></div>
       </div>
 
+      <div class="card" id="oppsCard">
+        <div class="scorehead">
+          <h2 style="margin:0;">Discovered opportunities</h2>
+          <span class="n" id="oppsN">awaiting discovery</span>
+        </div>
+        <div id="opportunities" style="margin-top:0.7rem;">
+          <div class="empty">After claim checks, the agent scans rising ethical demand and matches unclaimed line materials to substantiatable claims.</div>
+        </div>
+      </div>
+
       <div class="card" id="gate">
         <div class="q2" id="gateQ">Human sign-off required</div>
         <div class="why" id="gateWhy"></div>
@@ -269,6 +290,7 @@
         <h2>Launch determination</h2>
         <div class="rec" id="memoRec">—</div>
         <div class="sum" id="memoSum"></div>
+        <div id="memoOpps"><h3>Recommended additions</h3><ul id="memoOppsList"></ul></div>
         <div class="memo-grid">
           <div class="mini"><div class="lbl">Confidence</div><div class="val" id="memoConf">—</div></div>
           <div class="mini"><div class="lbl">Fine exposure avoided</div><div class="val" id="memoExp">—</div></div>
@@ -306,14 +328,18 @@
       { id: "C6", sku: "GL-06", name: "Sable Tailored Trousers", img: "gl06_trousers.png", text: "reinforced seams for durability" },
     ];
     const $ = (id) => document.getElementById(id);
-    const convo = $("convo"), claimsEl = $("claims"), activity = $("activity"), rawlog = $("rawlog");
+    const convo = $("convo"), claimsEl = $("claims"), oppsEl = $("opportunities"), activity = $("activity"), rawlog = $("rawlog");
     const runBtn = $("runBtn"), gate = $("gate");
-    let sid = null, cleared = 0, blocked = 0, thinkBubble = null, userHeld = false, memoData = null;
+    let sid = null, cleared = 0, blocked = 0, oppsFound = 0, oppsAdded = 0, thinkBubble = null, userHeld = false, memoData = null;
+
+    const OPP_IMAGES = { "GL-01": "gl01_puffer.png", "GL-02": "gl02_sweater.png" };
 
     function reset() {
-      cleared = 0; blocked = 0; sid = null; thinkBubble = null; userHeld = false; memoData = null;
+      cleared = 0; blocked = 0; oppsFound = 0; oppsAdded = 0; sid = null; thinkBubble = null; userHeld = false; memoData = null;
       convo.innerHTML = ""; activity.innerHTML = ""; rawlog.textContent = "";
-      gate.classList.remove("show"); $("memo").classList.remove("show");
+      gate.classList.remove("show"); $("memo").classList.remove("show"); $("memoOpps").classList.remove("show");
+      oppsEl.innerHTML = '<div class="empty">After claim checks, the agent scans rising ethical demand and matches unclaimed line materials to substantiatable claims.</div>';
+      $("oppsN").textContent = "awaiting discovery";
       $("nowLine").textContent = "";
       claimsEl.innerHTML = CLAIMS.map(c => `
         <div class="claim pending" data-id="${c.id}">
@@ -379,6 +405,48 @@
       $("scoreN").textContent = `${cleared} cleared · ${blocked} blocked`;
       $("kCleared").textContent = cleared; $("kBlocked").textContent = blocked;
     }
+    function ensureOppCard(id, sku, text, trend) {
+      if (oppsEl.querySelector(`[data-opp="${id}"]`)) return oppsEl.querySelector(`[data-opp="${id}"]`);
+      if (oppsEl.querySelector(".empty")) oppsEl.innerHTML = "";
+      const img = OPP_IMAGES[sku] || "gl01_puffer.png";
+      const el = document.createElement("div");
+      el.className = "claim opportunity candidate";
+      el.dataset.opp = id;
+      el.innerHTML = `
+        <div class="top">
+          <img class="thumb" src="assets/${img}" alt="${sku}"/>
+          <div class="meta">
+            <div class="txt">"${text}"</div>
+            <div class="sku">${id} · ${sku} · discovered claim</div>
+            <div class="trend">${trend ? `↑ ${trend}` : ""}</div>
+          </div>
+          <span class="pill candidate">candidate</span>
+        </div>
+        <div class="cite"></div>`;
+      oppsEl.appendChild(el);
+      return el;
+    }
+    function setOpp(id, status, citation, remediation, trend, demandIndex, upliftPct) {
+      const el = oppsEl.querySelector(`[data-opp="${id}"]`);
+      if (!el) return;
+      const prev = el.className.match(/recommended|rejected|needs-evidence/)?.[0];
+      el.className = "claim opportunity " + status + (status === "substantiated" ? " recommended" : "");
+      const pill = el.querySelector(".pill");
+      const label = status === "substantiated" ? "add to launch" : status.replace("-", " ");
+      pill.className = "pill " + (status === "substantiated" ? "recommended" : status);
+      pill.textContent = label;
+      if (trend) {
+        const t = el.querySelector(".trend");
+        t.textContent = `↑ ${trend}${demandIndex ? ` · demand ${demandIndex}x` : ""}${upliftPct ? ` · +${upliftPct}% uplift` : ""}`;
+      }
+      if (citation) {
+        el.querySelector(".cite").innerHTML = `<span class="doc">evidence:</span> ${citation}`
+          + (remediation ? `<div class="rem"><b>Fix →</b> ${remediation}</div>` : "");
+        el.classList.add("reveal");
+      }
+      if (status === "substantiated" && prev !== "substantiated") oppsAdded++;
+      $("oppsN").textContent = `${oppsAdded} recommended · ${oppsFound} discovered`;
+    }
     function fillCommercial(ev) {
       if (ev.actor === "forecast_demand") {
         const m = $("mDemand"); m.classList.remove("pending");
@@ -403,6 +471,7 @@
       search_regulations: "search regulations", lookup_supplier_cert: "pull supplier cert",
       verify_recycled_content: "verify recycled %", compute_risk_exposure: "compute fine exposure",
       submit_claim_verdict: "record verdict", finalize_determination: "finalize decision",
+      discover_claim_opportunities: "scan demand opportunities", submit_opportunity_verdict: "vet opportunity",
     };
 
     function handle(ev) {
@@ -459,11 +528,25 @@
             setClaim(ev.claim_id, "checking");
           }
           break;
+        case "opportunity":
+          ensureOppCard(ev.opportunity_id, ev.sku, ev.text, ev.trend_keyword);
+          if (ev.status === "candidate") {
+            oppsFound++;
+            act("call", "💡", `<b>${ev.opportunity_id}</b> rising demand · "${(ev.text||"").slice(0,36)}" · <b>${ev.trend_keyword||"trend"}</b> ${ev.demand_index ? `(${ev.demand_index}x)` : ""}`);
+            $("oppsN").textContent = `${oppsAdded} recommended · ${oppsFound} discovered`;
+            now("discovered claim opportunity — vetting against regulation + certs…");
+          } else if (ev.status && ev.status !== "candidate") {
+            setOpp(ev.opportunity_id, ev.status, ev.citation, ev.remediation, ev.trend_keyword, ev.demand_index, ev.uplift_pct);
+            const vColor = ev.status === "substantiated" ? "var(--accent)" : (ev.status === "rejected" ? "var(--faint)" : "var(--amber)");
+            const vIcon = ev.status === "substantiated" ? "★" : (ev.status === "rejected" ? "✕" : "⚠");
+            act("tool", vIcon, `<b>${ev.opportunity_id}</b> → <b style="color:${vColor}">${ev.status === "substantiated" ? "ADD TO LAUNCH" : ev.status.replace("-"," ")}</b>`);
+          }
+          break;
         case "await_human":
           clearThinking(); now("awaiting your sign-off");
           act("gate", "⏸", `<b>Human gate</b> · ${ev.prompt}`);
           $("gateQ").textContent = ev.prompt;
-          $("gateWhy").textContent = "The agent has adjudicated all claims and is ready to file — your desk signs off before it becomes a determination of record.";
+          $("gateWhy").textContent = "The agent has adjudicated all claims, vetted discovered opportunities, and is ready to file — your desk signs off before it becomes a determination of record.";
           gate.classList.add("show");
           gate.scrollIntoView({ behavior: "smooth", block: "center" });
           break;
@@ -499,6 +582,17 @@
       $("memoExp").textContent = "€" + Math.round((ev.max_exposure_eur||0)/1e6) + "M";
       $("memoCleared").textContent = (ev.cleared ?? cleared) + "/" + (ev.total_claims ?? 6);
       $("memoCited").textContent = (ev.cited_pct ?? 100) + "%";
+      const opps = ev.recommended_opportunities || [];
+      const oppsBox = $("memoOpps"), oppsList = $("memoOppsList");
+      if (opps.length && !held) {
+        oppsBox.classList.add("show");
+        oppsList.innerHTML = opps.map(o =>
+          `<li><b>${o.opportunity_id}</b> · ${o.sku}: "${o.text}" — ↑ ${o.trend_keyword || "demand"}${o.uplift_pct ? ` (+${o.uplift_pct}% uplift)` : ""}</li>`
+        ).join("");
+      } else {
+        oppsBox.classList.remove("show");
+        oppsList.innerHTML = "";
+      }
       $("kCited").textContent = (ev.cited_pct ?? 100) + "%";
       $("memo").scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -519,7 +613,7 @@
     runBtn.onclick = () => {
       runBtn.disabled = true; reset();
       setStatus("Agent running", true);
-      addMsg("sys", "Briefing GreenLight: review the Élan Studio AW26 line — size the commercial upside, then check all 6 marketing claims against EU Directive 2024/825 and the supplier evidence.");
+      addMsg("sys", "Briefing GreenLight: review the Élan Studio AW26 line — size the commercial upside, check all 6 marketing claims against EU Directive 2024/825, then discover rising-demand claim opportunities the brand could add.");
       showThinking();
       const es = new EventSource("/api/run?delay=0.3");
       es.onmessage = (m) => { try { handle(JSON.parse(m.data)); } catch(e){} };

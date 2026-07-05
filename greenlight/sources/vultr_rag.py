@@ -80,7 +80,7 @@ def lookup_supplier_cert(sku, attribute=None):
     live = os.getenv("GREENLIGHT_LIVE_RAG", "0") == "1"
     cols = _load_collections()
     cert_id = cols.get("supplier_certs")
-    pack = certs.lookup_by_sku(sku)
+    pack = certs.lookup_by_sku(sku, attribute)
     tc = pack.get("transaction")
     sc = pack.get("scope")
 
