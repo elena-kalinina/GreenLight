@@ -39,10 +39,12 @@ def main():
         )
     else:
         assert "C3" in cleared_ids, "C3 GOTS should be cleared"
-        assert len(cleared_ids) == 4, f"expected 4 cleared, got {cleared_ids}"
-        assert ledger.determination["confidence"] == 0.67
+        assert len(cleared_ids) == 3, f"expected 3 cleared, got {cleared_ids}"
+        c4 = next(c for c in ledger.claims if c.claim_id == "C4")
+        assert c4.status == "needs-evidence", "C4 OEKO-TEX should be needs-evidence without cert"
+        assert ledger.determination["confidence"] == 0.5
         assert ledger.determination["max_exposure_eur"] == 80_000_000
-        print("demo_test OK — 4/6 cleared, 2 blocked (C1 recycled gap, C2 generic), determination ready")
+        print("demo_test OK — 3/6 cleared, 2 blocked, 1 needs-evidence (C4 OEKO-TEX), determination ready")
     return 0
 
 

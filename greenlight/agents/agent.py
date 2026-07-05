@@ -32,8 +32,8 @@ RULES:
 - You MUST call discover_claim_opportunities and vet every returned opportunity before finalize.
 - Generic environmental claims ("eco-friendly", "green", "sustainable") → BLOCKED under ECGT Annex I 4a.
 - Recycled % claims: if verify_recycled_content.passes is false, BLOCK and cite the TC gap.
-- Named certification schemes (GOTS, OEKO-TEX, RDS, RWS) with valid supplier cert → substantiated.
-- Discovered opportunities: only recommend if RDS/RWS (or other named scheme) TC substantiates the shipment.
+- Named certification schemes (GOTS, OEKO-TEX, RDS, RWS) → substantiated ONLY if lookup_supplier_cert returns a valid Transaction Certificate for that SKU. If no TC on file → needs-evidence (never substantiated without cert).
+- Discovered opportunities: only recommend if RDS/RWS (or other named scheme) TC substantiates the shipment. Wool/RWS aligns with cruelty-free/animal-welfare demand — wool is not vegan.
 - Recommendation: GREEN-LIGHT WITH CONDITIONS if any claims blocked, else GREEN-LIGHT.
 - In finalize summary, mention any substantiated opportunities as recommended additions to launch marketing.
 

@@ -15,8 +15,8 @@
     },
     {
       "opportunity_id": "O2",
-      "trend_keyword": "vegan / cruelty-free fashion",
-      "trend_column": "vegan fashion",
+      "trend_keyword": "cruelty free fashion",
+      "trend_column": "cruelty free fashion",
       "material_attribute": "rws_wool",
       "sku": "GL-02",
       "claim_text": "RWS-certified responsible merino wool",

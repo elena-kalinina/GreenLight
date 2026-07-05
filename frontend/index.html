@@ -85,7 +85,23 @@
     .card h2 { margin: 0 0 0.7rem; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--faint); }
 
     /* Conversation */
-    #convo { display: flex; flex-direction: column; gap: 0.7rem; }
+    #convo { display: flex; flex-direction: column; gap: 0.55rem; min-height: 0; }
+    #convoPinned { display: flex; flex-direction: column; gap: 0.7rem; flex: none; }
+    .reasoning-log {
+      max-height: 150px; overflow-y: auto; flex: none;
+      display: flex; flex-direction: column; gap: 0.4rem;
+      padding: 0.5rem 0.35rem 0.15rem 0; margin-top: 0.15rem;
+      border-top: 1px solid var(--border2);
+    }
+    .reasoning-log:empty { display: none; }
+    .reasoning-log-hd {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--faint); margin-bottom: 0.1rem; flex: none;
+    }
+    .reasoning-log .msg { gap: 0.45rem; }
+    .reasoning-log .avatar { width: 20px; height: 20px; font-size: 0.65rem; border-radius: 6px; }
+    .reasoning-log .bubble { padding: 0.4rem 0.55rem; font-size: 0.76rem; line-height: 1.4; }
+    .reasoning-log .who { display: none; }
     .msg { display: flex; gap: 0.6rem; align-items: flex-start; }
     .avatar {
       width: 28px; height: 28px; border-radius: 8px; flex: none; display: grid; place-items: center;
@@ -270,7 +286,13 @@
       <div class="card">
         <h2>GreenLight agent</h2>
         <div id="convo">
-          <div class="empty">Press <b>Run compliance review</b> to brief the agent. It will size the commercial upside, then check every marketing claim against the regulation and supplier evidence — pausing for your sign-off before filing.</div>
+          <div id="convoPinned">
+            <div class="empty">Press <b>Run compliance review</b> to brief the agent. It will size the commercial upside, then check every marketing claim against the regulation and supplier evidence — pausing for your sign-off before filing.</div>
+          </div>
+          <div id="reasoningWrap" style="display:none">
+            <div class="reasoning-log-hd">Agent notes</div>
+            <div id="reasoningLog" class="reasoning-log"></div>
+          </div>
         </div>
       </div>
 
@@ -353,7 +375,8 @@
       { id: "C6", sku: "GL-06", name: "Sable Tailored Trousers", img: "gl06_trousers.png", text: "reinforced seams for durability" },
     ];
     const $ = (id) => document.getElementById(id);
-    const convo = $("convo"), claimsEl = $("claims"), oppsEl = $("opportunities"), activity = $("activity"), rawlog = $("rawlog");
+    const convo = $("convo"), convoPinned = $("convoPinned"), reasoningLog = $("reasoningLog"), reasoningWrap = $("reasoningWrap");
+    const claimsEl = $("claims"), oppsEl = $("opportunities"), activity = $("activity"), rawlog = $("rawlog");
     const runBtn = $("runBtn"), gate = $("gate");
     let sid = null, cleared = 0, blocked = 0, oppsFound = 0, oppsAdded = 0, thinkBubble = null, userHeld = false, memoData = null;
     let planEl = null, stageEl = null, currentStageId = null;
@@ -363,7 +386,8 @@
     function reset() {
       cleared = 0; blocked = 0; oppsFound = 0; oppsAdded = 0; sid = null; thinkBubble = null; userHeld = false; memoData = null;
       planEl = null; stageEl = null; currentStageId = null;
-      convo.innerHTML = ""; activity.innerHTML = ""; rawlog.textContent = "";
+      convoPinned.innerHTML = ""; reasoningLog.innerHTML = ""; reasoningWrap.style.display = "none";
+      activity.innerHTML = ""; rawlog.textContent = "";
       gate.classList.remove("show"); $("memo").classList.remove("show"); $("memoOpps").classList.remove("show");
       oppsEl.innerHTML = '<div class="empty">After claim checks, the agent scans rising ethical demand and matches unclaimed line materials to substantiatable claims.</div>';
       $("oppsN").textContent = "awaiting discovery";
@@ -384,16 +408,26 @@
     }
     reset();
 
-    function addMsg(who, text, cls="") {
+    function addMsg(who, text, cls="", target=convoPinned) {
+      if (target === convoPinned && target.querySelector(".empty")) target.innerHTML = "";
       const wrap = document.createElement("div"); wrap.className = "msg";
       wrap.innerHTML = `<div class="avatar ${who==='agent'?'agent':'sys'}">${who==='agent'?'◆':'i'}</div>
         <div class="bubble ${cls}"><div class="who">${who==='agent'?'GreenLight · Kimi-K2.6':'System'}</div><div class="body"></div></div>`;
       wrap.querySelector(".body").textContent = text;
-      convo.appendChild(wrap); convo.scrollTop = convo.scrollHeight;
+      target.appendChild(wrap);
+      if (target === reasoningLog) {
+        reasoningWrap.style.display = "";
+        target.scrollTop = target.scrollHeight;
+      } else {
+        convo.scrollTop = convo.scrollHeight;
+      }
       return wrap;
     }
+    function addReasoning(text) {
+      addMsg("agent", text, "reasoning", reasoningLog);
+    }
     function renderAgentPlan(steps) {
-      if (convo.querySelector(".empty")) convo.innerHTML = "";
+      if (convoPinned.querySelector(".empty")) convoPinned.innerHTML = "";
       clearThinking();
       const wrap = document.createElement("div"); wrap.className = "msg";
       wrap.innerHTML = `<div class="avatar agent">◆</div>
@@ -401,7 +435,7 @@
           <div class="intro">I'll review this line in five stages — sizing the commercial upside, checking every declared claim against EU regulation and supplier evidence, scanning for honest claims we could add, quantifying fine exposure, then filing a determination.</div>
           <ol class="plan-steps" id="agentPlanSteps"></ol>
         </div>`;
-      convo.appendChild(wrap);
+      convoPinned.appendChild(wrap);
       planEl = wrap;
       const ol = wrap.querySelector("#agentPlanSteps");
       (steps || []).forEach((s, i) => {
@@ -427,7 +461,7 @@
         const wrap = document.createElement("div"); wrap.className = "msg";
         wrap.innerHTML = `<div class="avatar agent">◆</div>
           <div class="bubble stage"><span class="pulse"></span><div class="body"></div></div>`;
-        convo.appendChild(wrap);
+        convoPinned.appendChild(wrap);
         stageEl = wrap;
       }
       const toolHint = tool ? ` · <span style="color:var(--muted)">${TOOL_LABELS[tool]||tool}</span>` : "";
@@ -440,7 +474,7 @@
       thinkBubble = document.createElement("div"); thinkBubble.className = "msg";
       thinkBubble.innerHTML = `<div class="avatar agent">◆</div><div class="bubble think"><div class="who">GreenLight · Kimi-K2.6</div>
         <div class="typing"><span></span><span></span><span></span></div></div>`;
-      convo.appendChild(thinkBubble); convo.scrollTop = convo.scrollHeight;
+      convoPinned.appendChild(thinkBubble); convo.scrollTop = convo.scrollHeight;
     }
     function clearThinking() { if (thinkBubble) { thinkBubble.remove(); thinkBubble = null; } }
 
@@ -566,10 +600,7 @@
           break;
         case "gate_auto": act("gate", "✓", ev.text); break;
         case "agent":
-          if (ev.text && ev.text.trim()) {
-            clearThinking();
-            addMsg("agent", ev.text.trim(), "reasoning");
-          }
+          if (ev.text && ev.text.trim()) addReasoning(ev.text.trim());
           break;
         case "tool_call": {
           const lbl = TOOL_LABELS[ev.tool] || ev.tool;

@@ -374,6 +374,18 @@ def _submit_verdict(ctx: ToolContext, args: dict) -> dict:
             f"attach TC."
         )
 
+    if row["type"] == "certified_material" and status == "substantiated":
+        cert = trace.get("cert")
+        if not cert:
+            return {"error": "call lookup_supplier_cert before submitting verdict for certified_material claim"}
+        tc = cert.get("transaction")
+        if not tc or tc.get("status") != "VALID" or tc.get("linkedSku") != row["sku"]:
+            status = "needs-evidence"
+            args["remediation"] = args.get("remediation") or (
+                "No valid Transaction Certificate on file for this named certification scheme."
+            )
+            citation = citation or "Regulation checked — supplier shipment evidence missing."
+
     check = next((c for c in ctx.ledger.claims if c.claim_id == cid), None)
     if not check:
         check = ClaimCheck(

@@ -110,9 +110,11 @@ def check_claim(check: ClaimCheck, events):
             check.evidence = cert.get("citation")
             check.citation = f"Scope + Transaction certificate substantiate {check.text}."
         else:
-            check.status = "substantiated"
-            check.evidence = "Certification scheme named; no environmental generic claim under ECGT."
-            check.citation = "Specific certified-material claim with named scheme (not a generic environmental claim)."
+            check.status = "needs-evidence"
+            check.citation = (
+                f"Named scheme ({check.text}) — no valid Transaction Certificate on file for SKU {check.sku}."
+            )
+            check.remediation = "Obtain and attach the supplier certificate for this shipment before marketing."
 
     elif check.claim_type == "specific_verifiable":
         check.status = "substantiated"
