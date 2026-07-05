@@ -46,6 +46,8 @@ class EventStream:
             "metric": "📈",
             "synthesis": "📋",
             "agent": "🤖",
+            "agent_plan": "🧩",
+            "agent_stage": "▸",
             "tool_call": "⚙",
             "opportunity": "💡",
             "error": "✗",

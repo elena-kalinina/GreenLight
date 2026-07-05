@@ -99,6 +99,31 @@
     }
     .bubble .who { font-size: 0.68rem; color: var(--accent); font-weight: 700; margin-bottom: 0.15rem; }
     .bubble.think { color: var(--muted); font-style: italic; }
+    .bubble.plan { background: #121c2a; border-color: #2a4060; }
+    .bubble.plan .who { color: var(--violet); }
+    .bubble.plan .intro { font-size: 0.82rem; color: var(--text); margin-bottom: 0.55rem; line-height: 1.45; }
+    .plan-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+    .plan-step {
+      display: flex; gap: 0.55rem; align-items: flex-start; font-size: 0.78rem; color: var(--muted);
+      padding: 0.35rem 0.45rem; border-radius: 8px; border: 1px solid transparent;
+    }
+    .plan-step .num {
+      width: 18px; height: 18px; border-radius: 999px; flex: none; display: grid; place-items: center;
+      font-size: 0.62rem; font-weight: 800; background: #1b2735; color: var(--faint);
+    }
+    .plan-step .meta { flex: 1; min-width: 0; }
+    .plan-step .lbl { font-weight: 650; color: var(--text); }
+    .plan-step .det { font-size: 0.68rem; color: var(--faint); margin-top: 0.05rem; }
+    .plan-step.active { background: #152238; border-color: #2f5580; color: var(--text); }
+    .plan-step.active .num { background: var(--accent); color: #04121a; }
+    .plan-step.done { opacity: 0.72; }
+    .plan-step.done .num { background: #102a1d; color: var(--green); }
+    .bubble.stage {
+      background: #101820; border-color: #334155; font-size: 0.8rem; color: var(--accent);
+      display: flex; align-items: center; gap: 0.45rem;
+    }
+    .bubble.stage .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 1.4s infinite; flex: none; }
+    .bubble.reasoning { border-color: #2a3a50; }
     .typing span { display: inline-block; width: 5px; height: 5px; margin: 0 1px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
     .typing span:nth-child(2){ animation-delay: 0.2s;} .typing span:nth-child(3){ animation-delay: 0.4s;}
     @keyframes blink { 0%,100%{opacity:0.2;} 50%{opacity:1;} }
@@ -331,11 +356,13 @@
     const convo = $("convo"), claimsEl = $("claims"), oppsEl = $("opportunities"), activity = $("activity"), rawlog = $("rawlog");
     const runBtn = $("runBtn"), gate = $("gate");
     let sid = null, cleared = 0, blocked = 0, oppsFound = 0, oppsAdded = 0, thinkBubble = null, userHeld = false, memoData = null;
+    let planEl = null, stageEl = null, currentStageId = null;
 
     const OPP_IMAGES = { "GL-01": "gl01_puffer.png", "GL-02": "gl02_sweater.png" };
 
     function reset() {
       cleared = 0; blocked = 0; oppsFound = 0; oppsAdded = 0; sid = null; thinkBubble = null; userHeld = false; memoData = null;
+      planEl = null; stageEl = null; currentStageId = null;
       convo.innerHTML = ""; activity.innerHTML = ""; rawlog.textContent = "";
       gate.classList.remove("show"); $("memo").classList.remove("show"); $("memoOpps").classList.remove("show");
       oppsEl.innerHTML = '<div class="empty">After claim checks, the agent scans rising ethical demand and matches unclaimed line materials to substantiatable claims.</div>';
@@ -365,8 +392,51 @@
       convo.appendChild(wrap); convo.scrollTop = convo.scrollHeight;
       return wrap;
     }
+    function renderAgentPlan(steps) {
+      if (convo.querySelector(".empty")) convo.innerHTML = "";
+      clearThinking();
+      const wrap = document.createElement("div"); wrap.className = "msg";
+      wrap.innerHTML = `<div class="avatar agent">◆</div>
+        <div class="bubble plan"><div class="who">GreenLight · Kimi-K2.6 · Plan</div>
+          <div class="intro">I'll review this line in five stages — sizing the commercial upside, checking every declared claim against EU regulation and supplier evidence, scanning for honest claims we could add, quantifying fine exposure, then filing a determination.</div>
+          <ol class="plan-steps" id="agentPlanSteps"></ol>
+        </div>`;
+      convo.appendChild(wrap);
+      planEl = wrap;
+      const ol = wrap.querySelector("#agentPlanSteps");
+      (steps || []).forEach((s, i) => {
+        const li = document.createElement("li");
+        li.className = "plan-step";
+        li.dataset.stage = s.id;
+        li.innerHTML = `<span class="num">${i+1}</span><div class="meta"><div class="lbl">${s.label}</div><div class="det">${s.detail||""}</div></div>`;
+        ol.appendChild(li);
+      });
+      convo.scrollTop = convo.scrollHeight;
+    }
+    function setAgentStage(stageId, label, tool) {
+      if (!planEl) return;
+      if (currentStageId && currentStageId !== stageId) {
+        const prev = planEl.querySelector(`[data-stage="${currentStageId}"]`);
+        if (prev) { prev.classList.remove("active"); prev.classList.add("done"); }
+      }
+      currentStageId = stageId;
+      const step = planEl.querySelector(`[data-stage="${stageId}"]`);
+      if (step) { step.classList.add("active"); step.classList.remove("done"); }
+      clearThinking();
+      if (!stageEl) {
+        const wrap = document.createElement("div"); wrap.className = "msg";
+        wrap.innerHTML = `<div class="avatar agent">◆</div>
+          <div class="bubble stage"><span class="pulse"></span><div class="body"></div></div>`;
+        convo.appendChild(wrap);
+        stageEl = wrap;
+      }
+      const toolHint = tool ? ` · <span style="color:var(--muted)">${TOOL_LABELS[tool]||tool}</span>` : "";
+      stageEl.querySelector(".body").innerHTML = `<b>Executing:</b> ${label}${toolHint}`;
+      convo.scrollTop = convo.scrollHeight;
+      now(label + "…");
+    }
     function showThinking() {
-      if (thinkBubble) return;
+      if (thinkBubble || planEl) return;
       thinkBubble = document.createElement("div"); thinkBubble.className = "msg";
       thinkBubble.innerHTML = `<div class="avatar agent">◆</div><div class="bubble think"><div class="who">GreenLight · Kimi-K2.6</div>
         <div class="typing"><span></span><span></span><span></span></div></div>`;
@@ -482,16 +552,28 @@
         case "session": sid = ev.sid; break;
         case "plan":
           act("call", "🧩", `Planned review · <b>${(ev.claims||[]).length} claims</b> × regulations`);
-          showThinking(); now("agent is reasoning about the line…");
+          break;
+        case "agent_plan":
+          renderAgentPlan(ev.steps || []);
+          act("call", "🧩", `<b>Agent plan</b> · ${(ev.steps||[]).length} stages`);
+          break;
+        case "agent_stage":
+          setAgentStage(ev.stage_id, ev.label || ev.stage_id, ev.tool);
+          if (ev.status === "done" && planEl) {
+            const step = planEl.querySelector(`[data-stage="${ev.stage_id}"]`);
+            if (step) { step.classList.remove("active"); step.classList.add("done"); }
+          }
           break;
         case "gate_auto": act("gate", "✓", ev.text); break;
         case "agent":
-          clearThinking();
-          if (ev.text && ev.text.trim()) addMsg("agent", ev.text.trim());
-          now("agent is working…");
+          if (ev.text && ev.text.trim()) {
+            clearThinking();
+            addMsg("agent", ev.text.trim(), "reasoning");
+          }
           break;
         case "tool_call": {
           const lbl = TOOL_LABELS[ev.tool] || ev.tool;
+          if (ev.stage_id && ev.label) setAgentStage(ev.stage_id, ev.label, ev.tool);
           act("call", "⚙", `Kimi calls <code>${ev.tool}</code>`);
           now(`${lbl}…`);
           break;
@@ -555,6 +637,10 @@
         case "synthesis":
           memoData = ev;
           $("kCited").textContent = (ev.cited_pct ?? 100) + "%";
+          if (planEl && currentStageId) {
+            planEl.querySelectorAll(".plan-step").forEach(s => { s.classList.remove("active"); s.classList.add("done"); });
+            if (stageEl) stageEl.querySelector(".body").innerHTML = "<b>Complete</b> · all stages finished";
+          }
           break;
         case "metric":
           if (ev.cited_pct != null) $("kCited").textContent = ev.cited_pct + "%";
@@ -614,7 +700,6 @@
       runBtn.disabled = true; reset();
       setStatus("Agent running", true);
       addMsg("sys", "Briefing GreenLight: review the Élan Studio AW26 line — size the commercial upside, check all 6 marketing claims against EU Directive 2024/825, then discover rising-demand claim opportunities the brand could add.");
-      showThinking();
       const es = new EventSource("/api/run?delay=0.3");
       es.onmessage = (m) => { try { handle(JSON.parse(m.data)); } catch(e){} };
       es.addEventListener("done", () => { es.close(); runBtn.disabled = false; clearThinking(); setStatus("Review complete", false); now(""); });

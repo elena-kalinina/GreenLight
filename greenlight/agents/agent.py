@@ -36,7 +36,46 @@ RULES:
 - Discovered opportunities: only recommend if RDS/RWS (or other named scheme) TC substantiates the shipment.
 - Recommendation: GREEN-LIGHT WITH CONDITIONS if any claims blocked, else GREEN-LIGHT.
 - In finalize summary, mention any substantiated opportunities as recommended additions to launch marketing.
+
+ACCOUNTABILITY:
+- On your FIRST response, write 2–4 sentences outlining your plan (commercial sizing → claim checks → discovery → risk → determination) BEFORE calling any tools.
+- When starting a new workflow phase, you may add one brief sentence explaining what you are doing next.
 """
+
+PLAN_STEPS = [
+    {"id": "commercial", "label": "Size commercial upside", "detail": "forecast_demand · market_context · project_line_margin"},
+    {"id": "claims", "label": "Adjudicate 6 marketing claims", "detail": "regulation retrieval · supplier certs · per-claim verdicts (C1–C6)"},
+    {"id": "discovery", "label": "Discover claim opportunities", "detail": "ethical demand scan · vet RDS/RWS claims · recommend additions"},
+    {"id": "risk", "label": "Quantify risk exposure", "detail": "compute_risk_exposure (≤4% turnover cap)"},
+    {"id": "finalize", "label": "File launch determination", "detail": "recommendation · summary · recommended additions"},
+]
+
+_TOOL_STAGE = {
+    "forecast_demand": "commercial",
+    "market_context": "commercial",
+    "project_line_margin": "commercial",
+    "search_regulations": "claims",
+    "lookup_supplier_cert": "claims",
+    "verify_recycled_content": "claims",
+    "submit_claim_verdict": "claims",
+    "discover_claim_opportunities": "discovery",
+    "submit_opportunity_verdict": "discovery",
+    "compute_risk_exposure": "risk",
+    "finalize_determination": "finalize",
+}
+
+
+def _stage_label(stage_id: str) -> str:
+    for step in PLAN_STEPS:
+        if step["id"] == stage_id:
+            return step["label"]
+    return stage_id
+
+
+def _tool_stage(name: str, args: dict):
+    if name in ("search_regulations", "lookup_supplier_cert") and args.get("opportunity_id"):
+        return "discovery"
+    return _TOOL_STAGE.get(name)
 
 
 def run(line, plan_claims, events, human):
@@ -86,10 +125,13 @@ def run(line, plan_claims, events, human):
         {"role": "user", "content": user_msg},
     ]
 
+    ev.emit("agent_plan", "Kimi-K2.6", steps=PLAN_STEPS)
+    current_stage = None
+
     for turn in range(MAX_TURNS):
         msg = llm.chat(messages, model=config.MODEL_BRAIN, max_tokens=1024, tools=TOOL_SCHEMAS)
         if msg.get("content"):
-            ev.emit("agent", "Kimi-K2.6", text=msg["content"][:600])
+            ev.emit("agent", "Kimi-K2.6", text=msg["content"][:600], kind="reasoning")
 
         tool_calls = msg.get("tool_calls") or []
         if not tool_calls:
@@ -107,14 +149,27 @@ def run(line, plan_claims, events, human):
             fn = tc.get("function") or {}
             name = fn.get("name", "")
             args = parse_tool_args(fn.get("arguments"))
+            stage_id = _tool_stage(name, args)
+            if stage_id and stage_id != current_stage:
+                current_stage = stage_id
+                ev.emit(
+                    "agent_stage",
+                    "Kimi-K2.6",
+                    stage_id=stage_id,
+                    label=_stage_label(stage_id),
+                    tool=name,
+                    status="active",
+                )
+            ev.emit("tool_call", "Kimi-K2.6", tool=name, args=args, agent_turn=turn + 1, stage_id=stage_id)
             result = execute(name, args, ctx)
-            ev.emit("tool_call", "Kimi-K2.6", tool=name, args=args, agent_turn=turn + 1)
             messages.append({
                 "role": "tool",
                 "tool_call_id": tc.get("id", name),
                 "content": json.dumps(result, default=str)[:4000],
             })
             if ctx.finished:
+                if current_stage:
+                    ev.emit("agent_stage", "Kimi-K2.6", stage_id=current_stage, label=_stage_label(current_stage), status="done")
                 break
         if ctx.finished:
             break
