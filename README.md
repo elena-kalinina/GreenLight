@@ -4,7 +4,7 @@
 
 > *Claim boldly — but only what you can prove.*
 
-GreenLight is a **line-launch decision agent** for fashion retail. It forecasts the commercial upside of a season's sustainability positioning (demand, market size, margins), then checks every marketing claim against **real EU regulations** and **supplier evidence**. Claims that can't be substantiated are blocked with the exact regulation cited. The output is a **launch determination** a responsible-sourcing team can file: recommendation, per-claim verdicts, €-exposure avoided, and a confidence score.
+GreenLight is a **line-launch decision agent** for fashion retail. It forecasts the commercial upside of a season's sustainability positioning (demand, market size, margins), checks every marketing claim against **real EU regulations** and **supplier evidence**, and **proactively discovers new claims the brand could honestly make** when rising consumer demand meets substantiatable line materials. Claims that can't be substantiated are blocked with the exact regulation cited. The output is a **launch determination** a responsible-sourcing team can file: recommendation, per-claim verdicts, recommended claim additions, €-exposure avoided, and a confidence score.
 
 It plans, calls tools across **multiple data types**, retrieves documents more than once when evidence is missing, and aggregates commercial upside vs fine exposure into one decision.
 
@@ -46,7 +46,8 @@ GreenLight sits at the intersection: **capture the upside, drop only what you ca
 7. **Decides + finds a gap** — `"70% recycled polyester"` → `needs-evidence`.
 8. **Retrieves (#2)** — pulls the **supplier Transaction Certificate** (Scope Cert valid, TC covers only **40%**).
 9. **`verify_recycled_content()`** — recalculates claimed % vs TC coverage → **BLOCKED** + ECGT citation + remediation.
-10. **Aggregates** → **GREEN-LIGHT WITH CONDITIONS**: net upside vs €-exposure avoided, confidence score.
+10. **Discovers upside** — scans **ethical Google Trends** (`cruelty free fashion`, `vegan fashion`) against line materials not yet claimed; finds **RDS down** (GL-01 puffer) and **RWS wool** (GL-02 sweater); vets each with the same regulation + cert checks → **ADD TO LAUNCH** when substantiated.
+11. **Aggregates** → **GREEN-LIGHT WITH CONDITIONS**: net upside (incl. recommended additions) vs €-exposure avoided, confidence score.
 
 ---
 
@@ -95,7 +96,8 @@ Model IDs verified via `GET /v1/models` on 2026-07-04 (`scripts/smoke_vultr.py`,
 | **Grounds in documents** | Every blocked claim cites ECGT + supplier doc | `data/regulations/`, `data/certs/` |
 
 **Objective results (demo run on Élan Studio AW26):**
-- Claims: **4 substantiated / 2 blocked** (C1 recycled gap, C2 generic "eco-friendly")
+- Declared claims: **3 substantiated / 1 needs-evidence / 2 blocked** (C1 recycled gap, C2 generic "eco-friendly", C4 OEKO-TEX no cert on file)
+- **Discovered opportunities:** **2 recommended additions** — O1 RDS-certified down (GL-01, ↑ cruelty-free fashion 1.11×), O2 RWS merino wool (GL-02, ↑ vegan fashion 1.11×)
 - **100%** of decisions carry a document citation · **0** hallucinated compliance
 - Demand index from real Google Trends · line contribution **€5.1M** · up to **€80M** exposure avoided
 - **Confidence 0.67** · recommendation: **GREEN-LIGHT WITH CONDITIONS**
@@ -108,7 +110,7 @@ Model IDs verified via `GET /v1/models` on 2026-07-04 (`scripts/smoke_vultr.py`,
 
 <sub>Vector source: [`frontend/architecture.svg`](frontend/architecture.svg)</sub>
 
-**Kimi-K2.6 agent** (plans → commercial tools → multi-hop retrieval → per-claim verdicts → aggregation) with a **human gate** and **SSE event trace** to the UI. **Document layer:** two Vultr Turnkey RAG collections (`greenlight-regulations`, `greenlight-supplier-certs`) seeded from `data/`, with deterministic local keyword fallback so the demo never hard-stops. Model roles: see [Models](#models--right-model-per-job-vultr-serverless-inference) above and [`docs/VULTR.md`](docs/VULTR.md).
+**Kimi-K2.6 agent** (plans → commercial tools → multi-hop retrieval → per-claim verdicts → **proactive claim discovery** → aggregation) with a **human gate** and **SSE event trace** to the UI. **Document layer:** two Vultr Turnkey RAG collections (`greenlight-regulations`, `greenlight-supplier-certs`) seeded from `data/`, with deterministic local keyword fallback so the demo never hard-stops. Model roles: see [Models](#models--right-model-per-job-vultr-serverless-inference) above and [`docs/VULTR.md`](docs/VULTR.md).
 
 ---
 
@@ -149,17 +151,20 @@ GreenLight runs on **real public data wherever the decision depends on facts.** 
 
 **Product line — synthetic scenario.** A 6-SKU AW26 line whose *attributes* (categories, fibre compositions, price bands) are modeled on the open Livostyle catalog; the *brand* and its *marketing claims* are authored for the scenario. GL-01 includes RDS-certified down fill and GL-02 includes RWS merino wool — materials the agent can discover as **new substantiatable claims** when ethical demand is rising. (`data/line/aw26_line.json`)
 
-**Supplier certificates — synthetic, structurally authentic.** GRS/RCS **Scope** + **Transaction** Certificates following the Textile Exchange ASR-204/205 structure. The demo's key realism: the Scope Certificate is valid, but the Transaction Certificate for the shipment covers only **40%** vs the claimed **70%** — which is exactly how real recycled-content claims fail. Seeded into the `greenlight-supplier-certs` collection; this is **retrieval #2**. (`data/certs/`)
+**Supplier certificates — synthetic, structurally authentic.** GRS/GOTS **Scope** + **Transaction** Certificates following the Textile Exchange ASR-204/205 structure, plus **RDS** (Responsible Down Standard) and **RWS** (Responsible Wool Standard) certs for discovered-claim opportunities. The demo's key realism: the GRS Scope Certificate is valid, but the Transaction Certificate for the shipment covers only **40%** vs the claimed **70%** — which is exactly how real recycled-content claims fail. RDS/RWS TCs substantiate the agent-discovered down and wool claims. Seeded into the `greenlight-supplier-certs` collection; this is **retrieval #2**. (`data/certs/`)
+
+**Claim discovery mapping — transparent rules.** `data/demand/claim_opportunities.json` maps rising ethical Trends keywords → line material attributes → substantiatable claim templates (RDS/RWS). Used only by the Kimi agent via `discover_claim_opportunities()` — not the deterministic fallback.
 
 | Dataset | Source | Real / synthetic |
 |---|---|---|
 | Regulations | ECGT (EU) 2024/825 excerpts (EUR-Lex) | **Real** |
 | Enforcement context | Shein €40M, 4% penalty basis | **Real, cited** |
-| Demand signal | Google Trends (261 weeks, 3 keywords) | **Real** |
+| Demand signal | Google Trends (261 weeks, sustainability + ethical keywords) | **Real** |
+| Claim discovery map | Trends × line attributes → RDS/RWS templates | **Real trends** + authored mapping |
 | Margins | DataCo Smart Supply Chain → apparel benchmarks | **Real** |
 | Market / WTP | Roots Analysis, McKinsey/BoF, Textile Exchange | **Real, cited** |
 | Product line | 6-SKU AW26 line (Livostyle-derived attributes) | Attributes **real**; claims **synthetic (scenario)** |
-| Supplier certs | GRS/RCS Scope + Transaction Certificates | **Synthetic**, structurally authentic |
+| Supplier certs | GRS/GOTS/RDS/RWS Scope + Transaction Certificates | **Synthetic**, structurally authentic |
 
 Full provenance table: [`data/README.md`](data/README.md).
 
@@ -173,4 +178,4 @@ Architected and built **solo** at RAISE 2026 by **[NAME]** (team ShipHappens). C
 
 ## Status
 
-**Deployed & live on Vultr:** Kimi-K2.6 agent loop + Turnkey RAG verified end-to-end (`scripts/live_run.py`, `scripts/smoke_vultr.py` 16/16). Running at [http://45.32.76.147/frontend/index.html](http://45.32.76.147/frontend/index.html). Enterprise demo UI with live human-in-the-loop gate. Backup video pending.
+**Deployed & live on Vultr:** Kimi-K2.6 agent loop + proactive claim discovery + Turnkey RAG verified end-to-end (`scripts/live_run.py`, `scripts/smoke_vultr.py` 16/16). Running at [http://45.32.76.147/frontend/index.html](http://45.32.76.147/frontend/index.html). Enterprise demo UI with discovered-opportunities panel + live human-in-the-loop gate. Backup video pending.

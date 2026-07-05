@@ -63,10 +63,15 @@ GREENLIGHT_LIVE_RAG=1 GREENLIGHT_LIVE_LLM=1 python3 serve.py
 | Flag | Default | Live mode |
 |---|---|---|
 | `GREENLIGHT_LIVE_RAG=1` | off | Vultr Turnkey RAG collections (`greenlight-regulations`, `greenlight-supplier-certs`) |
-| `GREENLIGHT_LIVE_LLM=1` | off | Vultr Serverless Inference (Kimi / DeepSeek / Qwen) |
+| `GREENLIGHT_LIVE_LLM=1` | off | Vultr Serverless Inference (Kimi agent loop incl. **proactive claim discovery**) |
 
-Offline mode uses the same corpus via `local_rag.py` — same verdicts, faster, no API calls.
+Offline mode uses the same corpus via `local_rag.py` — same declared-claim verdicts, faster, no API calls; discovery requires live Kimi agent.
 Production on Compute should always run with both flags on.
+
+## Demo flow (live)
+
+1. ▶ **Run compliance review** — Kimi sizes commercial upside, adjudicates 6 claims, **discovers 2 ethical claim opportunities** (RDS down + RWS wool), vets them, pauses at human gate, files determination with recommended additions.
+2. UI panels: agent chat · commercial metrics · claim compliance · **discovered opportunities** · human gate · launch determination.
 
 ## Update after code changes
 

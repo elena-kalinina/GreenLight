@@ -9,15 +9,17 @@ can't be sourced or reliably integrated. See `internal_docs/DATA_SOURCES.md` for
 | `regulations/ecgt_2024_825.md` | ECGT (EU) 2024/825 operative clauses (verbatim) | **Real** (EUR-Lex CELEX:32024L0825) |
 | `regulations/context_market_enforcement.md` | Penalty basis, Shein enforcement, France law, recycled-content stats | **Real, cited** |
 | `market/market_context.json` | Market size, willingness-to-pay, demand signals | **Real, cited** |
-| `line/aw26_line.json` | The AW26 line (6 SKUs) + marketing claims | Attributes modeled on real Livostyle catalog; **claims synthetic (scenario)** |
-| `certs/scope_certificates.json` | Supplier Scope Certificates | Synthetic, structurally authentic (Textile Exchange ASR-204) |
-| `certs/transaction_certificates.json` | Supplier Transaction Certificates (incl. the 40% vs 70% mismatch) | Synthetic, structurally authentic (ASR-205) |
+| `line/aw26_line.json` | The AW26 line (6 SKUs) + marketing claims + per-SKU `attributes` (incl. RDS down, RWS wool for discovery) | Attributes modeled on real Livostyle catalog; **claims synthetic (scenario)** |
+| `certs/scope_certificates.json` | Supplier Scope Certificates (GRS, GOTS, **RDS**, **RWS**) | Synthetic, structurally authentic (Textile Exchange ASR-204) |
+| `certs/transaction_certificates.json` | Supplier Transaction Certificates (incl. the 40% vs 70% mismatch + RDS/RWS TCs for discovered claims) | Synthetic, structurally authentic (ASR-205) |
 | `demand/trends_sustainability.csv` | **Google Trends** interest-over-time, 261 weekly rows (sustainable fashion / recycled polyester / organic cotton) | **Real** (pulled via `scripts/fetch_data.py`) |
+| `demand/trends_ethical.csv` | **Google Trends** ethical keywords (cruelty free fashion / responsible wool / vegan fashion) — used by `discover_claim_opportunities()` | **Real** (pulled via `scripts/fetch_data.py`) |
+| `demand/claim_opportunities.json` | Maps rising ethical Trends → line material attributes → RDS/RWS claim templates | **Real trends** + authored mapping |
 | `margins/datac_apparel_benchmarks.csv` | Per-category profit ratio / discount / price benchmarks (apparel, footwear, clothing…) | **Real** (derived from DataCo, 10 categories) |
 
 ## Fetched & reproducible
-`scripts/fetch_data.py` re-downloads DataCo (→ gitignored 96MB raw + committed benchmark) and
-re-pulls Google Trends. Deps: `python3 -m pip install --user pytrends-modern`.
+`scripts/fetch_data.py` re-downloads DataCo (→ gitignored 96MB raw + committed benchmark),
+re-pulls Google Trends (sustainability + ethical keywords). Deps: `python3 -m pip install --user pytrends-modern`.
 
 ## Still manual (form-gated — optional upgrade)
 - **Visuelle 2.0** (real per-SKU sales + Google Trends + weather, Nuna Lie): download requires a
@@ -30,7 +32,16 @@ re-pulls Google Trends. Deps: `python3 -m pip install --user pytrends-modern`.
   retrieval returns the right ECGT clause, and commercial data loads. (`--no-vultr` for offline only.)
 - `python3 scripts/smoke_vultr.py` — live Vultr inference + Turnkey RAG + Gradium TTS.
 
+## Proactive claim discovery (agent-only)
+After adjudicating the 6 declared marketing claims, the Kimi agent calls `discover_claim_opportunities()`:
+1. Reads `trends_ethical.csv` for rising keywords (threshold: demand index ≥ 1.02)
+2. Cross-references `line/aw26_line.json` `attributes` not already claimed
+3. Returns candidates from `claim_opportunities.json` (O1: RDS down / GL-01, O2: RWS wool / GL-02)
+4. Kimi vets each with regulation + supplier cert retrieval, same as declared claims
+
+Deterministic fallback (`GREENLIGHT_LIVE_LLM=0`) does **not** run discovery — keeps `demo_test.py` stable.
+
 ## Note
 Only the 96MB DataCo raw and any Visuelle download are gitignored; the small real derived files
-(`trends_sustainability.csv`, `datac_apparel_benchmarks.csv`) are committed. RAG collections are
+(`trends_sustainability.csv`, `trends_ethical.csv`, `datac_apparel_benchmarks.csv`) are committed. RAG collections are
 seeded from `regulations/` and `certs/` at build time.
