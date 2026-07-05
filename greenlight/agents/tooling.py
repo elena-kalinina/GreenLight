@@ -562,7 +562,7 @@ def _finalize(ctx: ToolContext, args: dict) -> dict:
     opp_uplift = 0
     for o in recommended:
         pct = (o.uplift_pct or 5) / 100.0
-        opp_uplift += round(upside * pct * (o.demand_index or 1.0) / len(line["skus"]), 0)
+        opp_uplift += round(upside * pct * (o.demand_index or 1.0) / len(ctx.line["skus"]), 0)
     net_upside = round(upside + positioning_uplift + opp_uplift, 0)
     risk = compute_risk_exposure(ledger.turnover_eur, blocked)
 
