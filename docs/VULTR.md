@@ -18,12 +18,18 @@ We use the right model for each job rather than one model for everything:
 |---|---|---|
 | **Agent brain** — planning, decisions, tool-calling | **`moonshotai/Kimi-K2.6`** | Strong agentic reasoning; native tool-calling verified on Vultr Serverless Inference |
 | **Grounded document reasoning** (RAG) — "is this claim substantiated by the retrieved clause?" | **`deepseek-ai/DeepSeek-V4-Flash`** | Reasoning-tuned and verified against the Turnkey RAG endpoint |
-| **Structured output / summarization** (determination JSON, DPP fields, remediation copy) | **`Qwen/Qwen3.6-27B`** | Fast, stable instruction-following for structured/auxiliary output |
+| **Structured output** (reserved — DPP fields, remediation copy) | **`Qwen/Qwen3.6-27B`** | Smoke-tested on Vultr; **not wired** in the demo pipeline |
 
 > Model IDs are the exact catalog names returned by `GET /v1/models` and verified end-to-end
 > (chat, tool-calling, and grounded RAG) on 2026-07-04. Roles are cleanly split so each call
 > uses a model suited to it. Embeddings for the vector store are handled by Vultr's own
 > `vultr/VultronRetriever*` models automatically.
+>
+> **Launch determination:** memo text comes from Kimi's `finalize_determination` tool call;
+> €-metrics are computed from tool outputs (`greenlight/agents/tooling.py`), with a
+> deterministic fallback in `greenlight/agents/determination.py`. Qwen is listed in
+> `greenlight/config.py` as `MODEL_STRUCTURED` for future auxiliary structured output but is
+> not invoked at runtime today.
 
 ## Endpoints
 

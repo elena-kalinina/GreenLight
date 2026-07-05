@@ -1,38 +1,38 @@
 {
-  "_comment": "Voiceover script for the 60s demo. Numbers are spelled out for natural TTS. Regenerate audio with: python3 scripts/gradium_tts.py",
+  "_comment": "Five-episode voiceover for timed demo video. Regenerate: python3 scripts/gradium_tts.py | One episode: python3 scripts/gradium_tts.py --beat ep01_intro_stage1",
   "voice_id": "KWJiFWu2O9nMPYcR",
   "voice_name": "John (US, warm broadcaster) — locked",
   "output_format": "wav",
   "beats": [
     {
-      "id": "01_hook",
-      "time": "0:00-0:08",
-      "text": "Sustainability sells, so brands over-claim. In twelve weeks, the E U starts fining that at up to four percent of turnover. Shein already paid forty-one million."
+      "id": "ep01_intro_stage1",
+      "time": "17s",
+      "title": "What GreenLight is + Stage 1 — commercial upside",
+      "text": "GreenLight is an enterprise agent that decides whether a fashion line can launch. It weighs commercial upside against compliance risk under E.U. Directive twenty twenty-four eight twenty-five. For Élan Studio A W twenty-six, Kimi opens with a five-stage plan. Stage one: size the commercial upside. It pulls real Google Trends demand, cited market context, and DataCo margin benchmarks. The goal is simple — know what this line is worth before anyone checks a single claim."
     },
     {
-      "id": "02_setup",
-      "time": "0:08-0:16",
-      "text": "GreenLight forecasts the demand upside of going sustainable, then checks every claim the brand wants to make, and green-lights only the ones it can prove."
+      "id": "ep02_stage2",
+      "time": "19s",
+      "title": "Stage 2 — adjudicate six marketing claims",
+      "text": "Stage two: adjudicate all six marketing claims. For each claim, Kimi retrieves the governing regulation from Vultr Turnkey R A G. When evidence is missing, it goes back — a second retrieval for supplier certificates. On the recycled polyester claim, the scope certificate is valid — but the transaction certificate covers only forty percent, not seventy. GreenLight blocks it, citing the exact E.C.G.T. article. A generic eco-friendly tag is blocked too — Annex one, point four a. Named schemes without a certificate on file are flagged needs-evidence, not rubber-stamped."
     },
     {
-      "id": "03_wow",
-      "time": "0:16-0:38",
-      "text": "It plans the checks and cites the regulation for each claim. This seventy percent recycled claim isn't backed, so it doesn't guess. It goes back, pulls the supplier's transaction certificate, finds it only covers forty, and blocks the claim, citing the exact article."
+      "id": "ep03_stage3",
+      "time": "18s",
+      "title": "Stage 3 — discover claim opportunities",
+      "text": "Stage three: discover claim opportunities the brand is not yet making. Kimi scans rising ethical demand — cruelty-free fashion is up — and matches it to materials already in the line. R.D.S.-certified down on the puffer. R.W.S. merino wool on the sweater. Same rigor as before: regulation check, supplier certificate, verdict. Both pass — add to launch, with projected demand uplift."
     },
     {
-      "id": "04_discovery",
-      "time": "0:38-0:48",
-      "text": "But it doesn't stop at blocking bad claims. It scans rising demand from real Google Trends, finds honest claims you're not making yet — certified down, responsible wool — and recommends them only when the supplier evidence holds."
+      "id": "ep04_stage4",
+      "time": "9s",
+      "title": "Stage 4 — quantify risk exposure",
+      "text": "Stage four: quantify fine exposure. On a two-billion-euro turnover brand, widespread infringement caps at four percent — up to eighty million euros. GreenLight computes that ceiling from the blocked claims."
     },
     {
-      "id": "05_impact",
-      "time": "0:48-0:55",
-      "text": "It green-lights the line, blocking what you can't prove and recommending what you can. Every decision traced to a document in Vultr's private R A G. A determination the sourcing team files, in seconds."
-    },
-    {
-      "id": "06_close",
-      "time": "0:55-1:00",
-      "text": "GreenLight. Claim boldly, but only what you can prove."
+      "id": "ep05_stage5",
+      "time": "6s",
+      "title": "Stage 5 — file launch determination",
+      "text": "Stage five: file the launch determination. Green-light with conditions — blocked claims dropped, honest additions recommended, every verdict traced to a document."
     }
   ]
 }

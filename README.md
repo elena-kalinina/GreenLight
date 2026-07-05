@@ -66,7 +66,7 @@ The loop (`greenlight/agents/agent.py`):
 
 A **human gate** then pauses the agent — the launch owner clicks **Approve & file** (or **Hold**) before the determination becomes a record. Every tool call, retrieval hop, and verdict streams live to the UI over SSE.
 
-> A deterministic fallback can runs the *same* tools without the LLM (`GREENLIGHT_LIVE_LLM=0`) so the repo clones-and-runs with no keys and the demo never hard-stops.
+> A deterministic fallback can run the *same* tools without the LLM (`GREENLIGHT_LIVE_LLM=0`) so the repo clones-and-runs with no keys and the demo never hard-stops.
 
 ### Models — right model per job (Vultr Serverless Inference)
 
@@ -74,9 +74,11 @@ A **human gate** then pauses the agent — the launch owner clicks **Approve & f
 |---|---|---|
 | **Agent brain** — plans, calls tools, decides | **`moonshotai/Kimi-K2.6`** | **Live** — drives the loop (`greenlight/agents/agent.py`) |
 | **Document-grounded retrieval reasoning** — "does this clause / cert substantiate the claim?" | **`deepseek-ai/DeepSeek-V4-Flash`** | **Live** — Turnkey RAG endpoint (`greenlight/sources/vultr_rag.py`) |
-| **Structured determination copy** | **`Qwen/Qwen3.6-27B`** | Verified on Vultr; determination currently assembled deterministically from tool outputs |
+| **Structured output** (reserved — DPP fields, remediation copy) | **`Qwen/Qwen3.6-27B`** | **Not wired** — smoke-tested on Vultr only (`scripts/smoke_vultr.py`); no runtime call in the demo pipeline |
 
 Model IDs verified via `GET /v1/models` on 2026-07-04 (`scripts/smoke_vultr.py`, 16/16 green).
+
+**Launch determination memo:** Kimi writes the recommendation and summary via `finalize_determination`; €-metrics (exposure, upside, uplift) are computed from tool outputs in `greenlight/agents/tooling.py`, with a deterministic fallback in `greenlight/agents/determination.py` if finalize is skipped.
 
 ---
 
