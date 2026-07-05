@@ -178,4 +178,4 @@ Architected and built **solo** at RAISE 2026 as team ShipHappens. Coordination e
 
 ## Status
 
-**Deployed & live on Vultr:** Kimi-K2.6 agent loop + proactive claim discovery + Turnkey RAG verified end-to-end (`scripts/live_run.py`, `scripts/smoke_vultr.py` 16/16). Running at [http://45.32.76.147/frontend/index.html](http://45.32.76.147/frontend/index.html). Enterprise demo UI with discovered-opportunities panel + live human-in-the-loop gate. Backup video pending.
+**Deployed & live on Vultr:** Kimi-K2.6 agent loop + proactive claim discovery + Turnkey RAG verified end-to-end (`scripts/live_run.py`, `scripts/smoke_vultr.py` 16/16). Running at [http://45.32.76.147/frontend/index.html](http://45.32.76.147/frontend/index.html). Enterprise demo UI with discovered-opportunities panel + live human-in-the-loop gate.
