@@ -131,7 +131,7 @@ def run(line, plan_claims, events, human):
     for turn in range(MAX_TURNS):
         msg = llm.chat(messages, model=config.MODEL_BRAIN, max_tokens=1024, tools=TOOL_SCHEMAS)
         if msg.get("content"):
-            ev.emit("agent", "Kimi-K2.6", text=msg["content"][:600], kind="reasoning")
+            ev.emit("agent", "Kimi-K2.6", text=msg["content"][:600])
 
         tool_calls = msg.get("tool_calls") or []
         if not tool_calls:
