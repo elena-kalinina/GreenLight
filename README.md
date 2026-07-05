@@ -10,7 +10,7 @@ It plans, calls tools across **multiple data types**, retrieves documents more t
 
 *Built solo at RAISE 2026 (team **ShipHappens**) for **Vultr Statement Two**, on Vultr Serverless Inference + Turnkey RAG, with Cursor.*
 
-**▶ Live demo (deployed on Vultr Compute): [http://45.32.76.147/frontend/index.html](http://45.32.76.147/frontend/index.html)**
+**▶ Live demo (deployed on Vultr Compute): [http://45.32.76.147/frontend/index.html](http://45.32.76.147/frontend/index.html)** (A complete live run takes 20-25 mins.)
 
 <!-- TODO: hero GIF of the compliance-catch: claim → needs-evidence → 2nd retrieval → BLOCKED + citation + score drop -->
 ![GreenLight — line launch agent](frontend/wow.gif)
